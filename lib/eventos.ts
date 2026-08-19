@@ -23,6 +23,25 @@ const CAMPOS =
   'id, slug, nombre, cliente, sede, fecha_inicio, fecha_fin, logo_url, color_primario, moneda';
 
 /**
+ * Eventos activos. Solo lo usa la raíz del sitio para saber adónde mandar a
+ * quien llega sin escanear el QR; el resto de la app entra siempre por slug.
+ */
+export const listarEventos = cache(async (): Promise<Evento[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('eventos')
+    .select(CAMPOS)
+    .order('fecha_inicio', { ascending: true });
+
+  if (error) {
+    throw new Error(`No se pudieron leer los eventos: ${error.message}`);
+  }
+
+  return (data ?? []) as Evento[];
+});
+
+/**
  * Devuelve null si el evento no existe o no está activo. La política RLS
  * `lectura_eventos` ya filtra los inactivos, así que no hace falta repetirlo.
  *

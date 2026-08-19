@@ -36,6 +36,10 @@ export function Quiz({ slug, moneda }: { slug: string; moneda: string | null }) 
       slug={slug}
       moneda={moneda}
       inicial={perfil ? aRespuestas(perfil.perfil) : RESPUESTAS_VACIAS}
+      // Quien ya tiene perfil viene de sus resultados y ahí tiene que volver.
+      // Mandarlo a la entrada no sirve: esa pantalla lo rebota hacia adelante.
+      salida={perfil ? `/${slug}/resultados` : `/${slug}`}
+      etiquetaSalida={perfil ? "Volver" : "Salir"}
     />
   );
 }
@@ -48,10 +52,14 @@ function Pasos({
   slug,
   moneda,
   inicial,
+  salida,
+  etiquetaSalida,
 }: {
   slug: string;
   moneda: string | null;
   inicial: Respuestas;
+  salida: string;
+  etiquetaSalida: string;
 }) {
   const router = useRouter();
   const preguntas = useMemo(() => construirPreguntas(moneda), [moneda]);
@@ -120,11 +128,11 @@ function Pasos({
         <div className="flex items-center justify-between">
           {indice === 0 ? (
             <Link
-              href={`/${slug}`}
+              href={salida}
               data-accion
               className="-ml-2 flex items-center px-2 text-sm text-hueso-suave"
             >
-              ← Salir
+              ← {etiquetaSalida}
             </Link>
           ) : (
             <button
