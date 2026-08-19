@@ -10,6 +10,8 @@ import { createClient } from '@/lib/supabase/server';
 
 /** Producto con lo que necesitan la tarjeta y la ficha, ya aplanado. */
 export interface ProductoCatalogo extends Producto {
+  /** Lo necesita el pedido: los items se agrupan y se insertan por stand. */
+  stand_id: string;
   varietal: string | null;
   pais: string | null;
   region: string | null;
@@ -29,6 +31,7 @@ interface FilaProducto {
   id: string;
   nombre: string;
   expositor_id: string;
+  stand_id: string;
   tipo: Producto['tipo'];
   precio: number | string;
   cuerpo: number | null;
@@ -51,7 +54,7 @@ interface FilaProducto {
 }
 
 const CAMPOS = `
-  id, nombre, expositor_id, tipo, precio, cuerpo, dulzor, acidez, taninos,
+  id, nombre, expositor_id, stand_id, tipo, precio, cuerpo, dulzor, acidez, taninos,
   maridajes, notas, disponible, destacado, varietal, pais, region, anada,
   grado_alcohol, descripcion, imagen_url,
   expositores ( nombre ),
@@ -67,6 +70,7 @@ function aplanar(f: FilaProducto): ProductoCatalogo {
     id: f.id,
     nombre: f.nombre,
     expositor_id: f.expositor_id,
+    stand_id: f.stand_id,
     tipo: f.tipo,
     precio: aNumero(f.precio),
     cuerpo: f.cuerpo,
@@ -106,3 +110,29 @@ export const obtenerCatalogo = cache(async (eventoId: string): Promise<ProductoC
 
   return (data as unknown as FilaProducto[]).map(aplanar);
 });
+
+/**
+ * Un solo producto, para la ficha. Filtra por evento aunque el id sea único:
+ * un id de otra feria no debe resolver desde este slug.
+ */
+export const obtenerProducto = cache(
+  async (eventoId: string, id: string): Promise<ProductoCatalogo | null> => {
+    // Un id que no es UUID hace fallar la query en Postgres; aquí es un 404.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('productos')
+      .select(CAMPOS)
+      .eq('evento_id', eventoId)
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`No se pudo leer el producto: ${error.message}`);
+    }
+
+    return data ? aplanar(data as unknown as FilaProducto) : null;
+  },
+);

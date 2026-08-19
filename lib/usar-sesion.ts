@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { instantaneaServidor, suscribir } from '@/lib/almacen';
+import { instantaneaPedido, type PedidoLocal } from '@/lib/pedido';
 import { instantaneaPerfil, sincronizarPerfil, type PerfilGuardado } from '@/lib/perfil';
 import { instantaneaSesion, sincronizarSesion, type SesionLocal } from '@/lib/sesion';
 
@@ -24,6 +25,15 @@ export function useSesion(slug: string): SesionLocal | null | undefined {
 export function usePerfil(slug: string): PerfilGuardado | null | undefined {
   const leer = useCallback(() => instantaneaPerfil(slug), [slug]);
   return useSyncExternalStore<PerfilGuardado | null | undefined>(
+    suscribir,
+    leer,
+    instantaneaServidor,
+  );
+}
+
+export function usePedido(slug: string): PedidoLocal | null | undefined {
+  const leer = useCallback(() => instantaneaPedido(slug), [slug]);
+  return useSyncExternalStore<PedidoLocal | null | undefined>(
     suscribir,
     leer,
     instantaneaServidor,
