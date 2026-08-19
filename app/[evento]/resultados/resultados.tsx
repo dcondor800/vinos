@@ -4,18 +4,11 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { ProductoCatalogo } from "@/lib/catalogo";
 import { simboloMoneda } from "@/lib/moneda";
-import { describirPerfil, recomendar } from "@/lib/recomendacion";
+import { describirPerfil } from "@/lib/recomendacion";
+import { seleccionarSugerencias } from "@/lib/sugerencias";
 import { useExigeEdad, usePerfil, useSincronizacion } from "@/lib/usar-sesion";
 import { BarraPedido } from "../barra-pedido";
 import { TarjetaVino } from "../tarjeta-vino";
-
-/**
- * Score mínimo para considerar que un vino de verdad encaja con el perfil. El
- * motor puntúa todo el catálogo, así que sin este corte "sugerencias" y
- * "catálogo completo" serían la misma lista en distinto orden.
- */
-const UMBRAL = 55;
-const MAXIMO = 12;
 
 export function Resultados({
   slug,
@@ -32,19 +25,12 @@ export function Resultados({
 
   const [verTodo, setVerTodo] = useState(false);
 
-  const calculo = useMemo(() => {
-    if (!perfil) return null;
-
-    // Todo el trabajo pasa aquí, sobre el catálogo que ya está en memoria: sin
-    // red de por medio y sin spinner.
-    const todas = recomendar(catalogo, perfil.perfil, { limite: MAXIMO });
-    const relevantes = todas.filter((s) => s.score >= UMBRAL);
-
-    // Menos de 4 encajes reales: se muestra lo mejor que haya y se avisa.
-    const ampliada = relevantes.length < 4 && todas.length > relevantes.length;
-
-    return { lista: ampliada ? todas : relevantes, ampliada };
-  }, [catalogo, perfil]);
+  // Todo el trabajo pasa aquí, sobre el catálogo que ya está en memoria: sin
+  // red de por medio y sin spinner.
+  const calculo = useMemo(
+    () => (perfil ? seleccionarSugerencias(catalogo, perfil.perfil) : null),
+    [catalogo, perfil],
+  );
 
   const porNombre = useMemo(
     () => [...catalogo].sort((a, b) => a.nombre.localeCompare(b.nombre, "es")),
