@@ -115,14 +115,19 @@ export function Resultados({
         </p>
       ) : (
         /* Repetido al final: tras desplazarse la cabecera ya no está a la vista,
-           y hay que poder rehacer el quiz sin volver arriba. */
+           y hay que poder rehacer el quiz sin volver arriba.
+
+           "Volver al inicio" apunta al quiz, no a la pantalla de bienvenida:
+           esa rebota hacia adelante a quien ya confirmó la edad y tiene perfil,
+           así que mandar ahí devolvería a esta misma lista. El quiz arranca en
+           la pregunta 1 con las respuestas anteriores ya marcadas. */
         <div className="mt-8 flex flex-col gap-3 border-t border-borde pt-6">
           <Link
             href={`/${slug}/quiz`}
             data-accion
             className="flex w-full items-center justify-center rounded-full border border-borde px-6 py-3.5 text-sm transition-colors active:bg-borde"
           >
-            {perfil ? "Cambiar mis respuestas" : "Responder el quiz"}
+            {perfil ? "Volver al inicio" : "Responder el quiz"}
           </Link>
 
           {perfil && (
