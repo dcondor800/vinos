@@ -1,0 +1,3 @@
+# Se desarrolla en Windows y se construye en Linux (Render). Normalizar a LF en
+# el repo evita que cada archivo aparezca cambiado entero al cambiar de máquina.
+* text=auto eol=lf

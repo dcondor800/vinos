@@ -1,0 +1,30 @@
+# Blueprint de Render. Al conectar el repo, Render lee esto y crea el servicio.
+#
+# Las cuatro variables van marcadas con sync: false: Render las pide en el
+# dashboard en vez de leerlas de aquí. Nunca pongas los valores en este archivo:
+# viaja al repo.
+#
+# Las NEXT_PUBLIC_* tienen que existir también durante el build, no solo en
+# runtime: Next las incrusta en el bundle del navegador y next.config.ts las lee
+# para armar remotePatterns de imágenes. En Render las variables del servicio
+# están disponibles en ambas fases, así que basta con cargarlas una vez.
+
+services:
+  - type: web
+    name: vinos
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ADMIN_IMPORT_KEY
+        sync: false

@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/**
+ * Superficie oscura fija: la app es el escenario. El único color que cambia por
+ * evento es --marca, que inyecta app/[evento]/layout.tsx y solo se usa en
+ * acciones y acentos. Los valores de aquí son el fallback para las rutas que no
+ * cuelgan de un evento.
+ */
+:root {
+  --superficie: #17131a;
+  --superficie-alta: #221c27;
+  --borde: #332b3a;
+  --hueso: #ede7e0;
+  --hueso-suave: #a49aa0;
+  --marca: #b03a48;
+  --marca-rgb: 176 58 72;
+  --marca-suave: rgb(176 58 72 / 0.16);
+  --marca-borde: rgb(176 58 72 / 0.55);
+  --sobre-marca: #ede7e0;
+}
+
+@theme inline {
+  --color-superficie: var(--superficie);
+  --color-superficie-alta: var(--superficie-alta);
+  --color-borde: var(--borde);
+  --color-hueso: var(--hueso);
+  --color-hueso-suave: var(--hueso-suave);
+  --color-marca: var(--marca);
+  --color-marca-suave: var(--marca-suave);
+  --color-marca-borde: var(--marca-borde);
+  --color-sobre-marca: var(--sobre-marca);
+
+  --font-sans: var(--fuente-ui);
+  --font-serif: var(--fuente-etiqueta);
+}
+
+html {
+  background: var(--superficie);
+  /* El fondo oscuro también en la barra de estado y el rebote de scroll de iOS. */
+  color-scheme: dark;
+}
+
+body {
+  background: var(--superficie);
+  color: var(--hueso);
+  font-family: var(--fuente-ui), system-ui, sans-serif;
+  /* La persona está de pie sosteniendo una copa: nada de doble tap para zoom. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Área táctil mínima de 44px en todo lo interactivo. */
+button,
+[role="button"],
+a[data-accion] {
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
