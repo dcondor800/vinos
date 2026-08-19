@@ -6,6 +6,7 @@ import type { ProductoCatalogo } from "@/lib/catalogo";
 import { simboloMoneda } from "@/lib/moneda";
 import { describirPerfil, recomendar } from "@/lib/recomendacion";
 import { useExigeEdad, usePerfil, useSincronizacion } from "@/lib/usar-sesion";
+import { BarraPedido } from "../barra-pedido";
 import { TarjetaVino } from "../tarjeta-vino";
 
 /**
@@ -141,6 +142,8 @@ export function Resultados({
           )}
         </div>
       )}
+
+      <BarraPedido slug={slug} />
     </main>
   );
 }

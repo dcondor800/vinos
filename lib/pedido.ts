@@ -8,6 +8,8 @@
  */
 
 import { escribir, instantanea, leer } from '@/lib/almacen';
+import { leerSesion, sincronizarSesion, uuid } from '@/lib/sesion';
+import { createClient } from '@/lib/supabase/client';
 
 export interface LineaPedido {
   productoId: string;
@@ -17,6 +19,18 @@ export interface LineaPedido {
 export interface PedidoLocal {
   items: LineaPedido[];
   actualizadoEn: string;
+  /** Se llenan al confirmar. Con código, el pedido queda cerrado a edición. */
+  id: string | null;
+  codigo: string | null;
+  sincronizado: boolean;
+}
+
+/** Sin O, 0, I ni 1: se dictan en voz alta en un salón ruidoso. */
+const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+export function generarCodigo(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return Array.from(bytes, (b) => ALFABETO[b % ALFABETO.length]).join('');
 }
 
 /** Tope por vino. Es una feria: nadie recoge 40 botellas de un stand. */
@@ -24,7 +38,13 @@ export const MAX_POR_VINO = 12;
 
 const clavePedido = (slug: string) => `vinos:pedido:${slug}`;
 
-const VACIO: PedidoLocal = { items: [], actualizadoEn: '' };
+const VACIO: PedidoLocal = {
+  items: [],
+  actualizadoEn: '',
+  id: null,
+  codigo: null,
+  sincronizado: false,
+};
 
 function validar(dato: unknown): PedidoLocal | null {
   const p = dato as Partial<PedidoLocal> | null;
@@ -43,6 +63,9 @@ function validar(dato: unknown): PedidoLocal | null {
   return {
     items,
     actualizadoEn: typeof p.actualizadoEn === 'string' ? p.actualizadoEn : '',
+    id: typeof p.id === 'string' ? p.id : null,
+    codigo: typeof p.codigo === 'string' ? p.codigo : null,
+    sincronizado: p.sincronizado === true,
   };
 }
 
@@ -54,8 +77,12 @@ export function instantaneaPedido(slug: string): PedidoLocal | null {
   return instantanea(clavePedido(slug), validar);
 }
 
-function guardar(slug: string, items: LineaPedido[]): PedidoLocal {
-  const pedido: PedidoLocal = { items, actualizadoEn: new Date().toISOString() };
+function guardar(slug: string, cambios: Partial<PedidoLocal>): PedidoLocal {
+  const pedido: PedidoLocal = {
+    ...leerPedido(slug),
+    ...cambios,
+    actualizadoEn: new Date().toISOString(),
+  };
   escribir(clavePedido(slug), pedido);
   return pedido;
 }
@@ -74,22 +101,111 @@ export function fijarCantidad(slug: string, productoId: string, cantidad: number
   const limpia = Math.min(MAX_POR_VINO, Math.max(0, Math.round(cantidad)));
 
   if (limpia === 0) {
-    return guardar(
-      slug,
-      actuales.filter((i) => i.productoId !== productoId),
-    );
+    return guardar(slug, { items: actuales.filter((i) => i.productoId !== productoId) });
   }
 
   const existe = actuales.some((i) => i.productoId === productoId);
 
-  return guardar(
-    slug,
-    existe
+  return guardar(slug, {
+    items: existe
       ? actuales.map((i) => (i.productoId === productoId ? { ...i, cantidad: limpia } : i))
       : [...actuales, { productoId, cantidad: limpia }],
-  );
+  });
 }
 
 export function agregarAlPedido(slug: string, productoId: string): PedidoLocal {
   return fijarCantidad(slug, productoId, cantidadDe(leerPedido(slug), productoId) + 1);
+}
+
+/** Datos que el pedido necesita del catálogo en el momento de confirmar. */
+export interface LineaConfirmada {
+  productoId: string;
+  standId: string;
+  cantidad: number;
+  precioUnit: number;
+}
+
+/**
+ * Genera el código y deja el pedido cerrado a edición. El código sale del
+ * cliente para que funcione sin red: si la feria se queda sin WiFi, la persona
+ * igual tiene su número y camina al stand. La fila sube después.
+ */
+export function confirmarPedido(slug: string, lineas: LineaConfirmada[]): PedidoLocal {
+  const pedido = guardar(slug, {
+    id: uuid(),
+    codigo: generarCodigo(),
+    sincronizado: false,
+  });
+
+  void sincronizarPedido(slug, lineas);
+
+  return pedido;
+}
+
+/**
+ * Reabre el pedido para editarlo. Suelta el código: al volver a confirmar se
+ * emite uno nuevo. La fila anterior queda huérfana en Supabase con estado
+ * 'abierto'; sin política de delete no hay forma de limpiarla desde el cliente,
+ * y para la telemetría del evento tampoco estorba.
+ */
+export function reabrirPedido(slug: string): PedidoLocal {
+  return guardar(slug, { id: null, codigo: null, sincronizado: false });
+}
+
+export function vaciarPedido(slug: string): PedidoLocal {
+  return guardar(slug, { items: [], id: null, codigo: null, sincronizado: false });
+}
+
+/**
+ * Sube el pedido y sus líneas. Hay FK a `sesiones`, así que la sesión va
+ * primero. Sin política de select, las líneas se insertan de una sola vez: si
+ * el insert de items falla, la cabecera queda sin líneas y el reintento la
+ * completa.
+ */
+export async function sincronizarPedido(
+  slug: string,
+  lineas: LineaConfirmada[],
+  intentos = 3,
+): Promise<boolean> {
+  const pedido = leerPedido(slug);
+  if (!pedido.id || !pedido.codigo || pedido.sincronizado) return true;
+
+  await sincronizarSesion(slug);
+  const sesion = leerSesion(slug);
+  if (!sesion?.sincronizada) return false;
+
+  try {
+    const supabase = createClient();
+
+    const { error: errorPedido } = await supabase.from('pedidos').insert({
+      id: pedido.id,
+      evento_id: sesion.eventoId,
+      sesion_id: sesion.id,
+      codigo: pedido.codigo,
+    });
+
+    // 23505: el código ya existía en este evento. Se emite otro y se reintenta.
+    if (errorPedido?.code === '23505') {
+      if (intentos <= 1) return false;
+      guardar(slug, { codigo: generarCodigo() });
+      return sincronizarPedido(slug, lineas, intentos - 1);
+    }
+    if (errorPedido) return false;
+
+    const { error: errorItems } = await supabase.from('pedido_items').insert(
+      lineas.map((l) => ({
+        pedido_id: pedido.id,
+        producto_id: l.productoId,
+        stand_id: l.standId,
+        cantidad: l.cantidad,
+        precio_unit: l.precioUnit,
+      })),
+    );
+    if (errorItems) return false;
+
+    guardar(slug, { sincronizado: true });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -1,6 +1,13 @@
 "use client";
 
-import { agregarAlPedido, cantidadDe, fijarCantidad, MAX_POR_VINO } from "@/lib/pedido";
+import Link from "next/link";
+import {
+  agregarAlPedido,
+  cantidadDe,
+  fijarCantidad,
+  MAX_POR_VINO,
+  totalBotellas,
+} from "@/lib/pedido";
 import { usePedido } from "@/lib/usar-sesion";
 
 /**
@@ -10,6 +17,7 @@ import { usePedido } from "@/lib/usar-sesion";
 export function AgregarAlPedido({ slug, productoId }: { slug: string; productoId: string }) {
   const pedido = usePedido(slug);
   const cantidad = cantidadDe(pedido ?? null, productoId);
+  const botellas = totalBotellas(pedido ?? null);
 
   return (
     <div className="sticky bottom-0 -mx-6 mt-10 border-t border-borde bg-superficie px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -49,6 +57,16 @@ export function AgregarAlPedido({ slug, productoId }: { slug: string; productoId
             </button>
           </div>
         </div>
+      )}
+
+      {botellas > 0 && (
+        <Link
+          href={`/${slug}/pedido`}
+          data-accion
+          className="mt-1 flex items-center justify-center text-sm text-hueso-suave underline underline-offset-4"
+        >
+          Ver mi pedido · {botellas} {botellas === 1 ? "botella" : "botellas"}
+        </Link>
       )}
     </div>
   );
