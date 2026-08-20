@@ -7,9 +7,13 @@ import { formatearPrecio } from "@/lib/moneda";
 import {
   confirmarPedido,
   fijarCantidad,
+  marcarRecogido,
   MAX_POR_VINO,
   reabrirPedido,
   sincronizarPedido,
+  standRecogido,
+  todoRecogido,
+  vaciarPedido,
   type LineaConfirmada,
 } from "@/lib/pedido";
 import { useExigeEdad, usePedido, useSincronizacion } from "@/lib/usar-sesion";
@@ -83,6 +87,8 @@ export function Pedido({
 
   const cerrado = pedido?.codigo != null;
   const vacio = grupos.length === 0;
+  const completo = todoRecogido(pedido ?? null);
+  const pendientes = grupos.filter((g) => !standRecogido(pedido ?? null, g.standId)).length;
 
   function alConfirmar() {
     const lineas: LineaConfirmada[] = grupos.flatMap((g) =>
@@ -116,16 +122,28 @@ export function Pedido({
       ) : (
         <>
           <p className="mt-1 text-sm text-hueso-suave">
-            {cerrado
-              ? "Ve a cada stand y muéstrale su sección de esta lista."
-              : grupos.length === 1
+            {!cerrado
+              ? grupos.length === 1
                 ? "Todo está en un solo stand."
-                : `Tus botellas están en ${grupos.length} stands. Se paga en cada uno.`}
+                : `Tus botellas están en ${grupos.length} stands. Se paga en cada uno.`
+              : completo
+                ? "Ya pasaste por todos los stands."
+                : `Te ${pendientes === 1 ? "queda" : "quedan"} ${pendientes} de ${grupos.length} ${grupos.length === 1 ? "stand" : "stands"}. Muéstrale a cada uno su sección de la lista.`}
           </p>
 
           <div className="mt-6 flex flex-col gap-5">
-            {grupos.map((g) => (
-              <section key={g.standId} className="rounded-2xl border border-borde">
+            {grupos.map((g) => {
+              const recogido = standRecogido(pedido, g.standId);
+
+              return (
+              <section
+                key={g.standId}
+                /* Lo recogido se apaga en vez de desaparecer: sigue siendo parte
+                   del pedido y de la cuenta, pero ya no es una parada pendiente. */
+                className={`rounded-2xl border transition-opacity ${
+                  recogido ? "border-borde/60 opacity-45" : "border-borde"
+                }`}
+              >
                 <header className="flex items-baseline justify-between gap-3 border-b border-borde px-4 py-3">
                   <div className="min-w-0">
                     <p className="text-lg font-medium">Stand {g.stand}</p>
@@ -157,7 +175,7 @@ export function Pedido({
                         <div className="flex shrink-0 items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => fijarCantidad(slug, l.producto.id, l.cantidad - 1)}
+                            onClick={() => fijarCantidad(slug, l.producto.id, l.cantidad - 1, g.standId)}
                             aria-label={`Quitar una botella de ${l.producto.nombre}`}
                             className="grid size-11 place-items-center rounded-full border border-borde text-lg active:bg-borde"
                           >
@@ -168,7 +186,7 @@ export function Pedido({
                           </span>
                           <button
                             type="button"
-                            onClick={() => fijarCantidad(slug, l.producto.id, l.cantidad + 1)}
+                            onClick={() => fijarCantidad(slug, l.producto.id, l.cantidad + 1, g.standId)}
                             disabled={l.cantidad >= MAX_POR_VINO}
                             aria-label={`Agregar una botella de ${l.producto.nombre}`}
                             className="grid size-11 place-items-center rounded-full border border-borde text-lg active:bg-borde disabled:opacity-40"
@@ -185,11 +203,40 @@ export function Pedido({
                   ))}
                 </ul>
 
-                <p className="border-t border-borde px-4 py-2.5 text-right text-sm text-hueso-suave">
-                  Subtotal <span className="ml-2 text-hueso">{formatearPrecio(g.subtotal, moneda)}</span>
-                </p>
+                <div className="flex items-center justify-between gap-3 border-t border-borde px-4 py-2.5">
+                  {/* Marcar el stand solo tiene sentido una vez confirmado:
+                      antes todavía se está armando la lista. */}
+                  {cerrado ? (
+                    <button
+                      type="button"
+                      onClick={() => marcarRecogido(slug, g.standId, !recogido)}
+                      aria-pressed={recogido}
+                      className="boton -my-1 -ml-2 gap-2 px-2 text-sm text-hueso-suave"
+                    >
+                      <span
+                        aria-hidden
+                        className={`grid size-5 shrink-0 place-items-center rounded-full border text-[11px] ${
+                          recogido
+                            ? "border-marca bg-marca text-sobre-marca"
+                            : "border-hueso-suave"
+                        }`}
+                      >
+                        {recogido ? "✓" : ""}
+                      </span>
+                      {recogido ? "Recogido" : "Ya lo recogí"}
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+
+                  <p className="text-sm text-hueso-suave">
+                    Subtotal{" "}
+                    <span className="ml-1 text-hueso">{formatearPrecio(g.subtotal, moneda)}</span>
+                  </p>
+                </div>
               </section>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-6 flex items-baseline justify-between">
@@ -205,12 +252,28 @@ export function Pedido({
           {/* Al final de todo: es lo último que se necesita, después de haber
               recorrido la lista. */}
           {cerrado && (
-            <Referencia
-              slug={slug}
-              codigo={pedido.codigo!}
-              sincronizado={pedido.sincronizado}
-              grupos={grupos}
-            />
+            <>
+              {completo && (
+                <div className="mt-6 rounded-xl border border-marca-borde bg-marca-suave px-4 py-4 text-center">
+                  <p className="text-sm">Recogiste todo lo de tu lista.</p>
+                  <button
+                    type="button"
+                    onClick={() => vaciarPedido(slug)}
+                    className="boton boton-primario mt-3 w-full text-base"
+                  >
+                    Terminar pedido
+                  </button>
+                </div>
+              )}
+
+              <Referencia
+                slug={slug}
+                codigo={pedido.codigo!}
+                sincronizado={pedido.sincronizado}
+                grupos={grupos}
+                completo={completo}
+              />
+            </>
           )}
 
           {/* Una vez confirmado no queda nada que tocar: la pantalla pasa a ser
@@ -244,11 +307,13 @@ function Referencia({
   codigo,
   sincronizado,
   grupos,
+  completo,
 }: {
   slug: string;
   codigo: string;
   sincronizado: boolean;
   grupos: GrupoStand[];
+  completo: boolean;
 }) {
   function reintentar() {
     void sincronizarPedido(
@@ -276,7 +341,7 @@ function Referencia({
         onClick={() => reabrirPedido(slug)}
         className="text-sm text-hueso-suave underline underline-offset-4"
       >
-        Modificar el pedido
+        {completo ? "Volver a abrirlo" : "Modificar el pedido"}
       </button>
 
       {/* El pedido vale igual sin red: lo que falta es la copia en el servidor. */}

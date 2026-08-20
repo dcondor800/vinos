@@ -133,7 +133,7 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
         <Chips titulo="Marida con" valores={vino.maridajes} />
 
         <div className="mt-auto" />
-        <AgregarAlPedido slug={slug} productoId={vino.id} />
+        <AgregarAlPedido slug={slug} productoId={vino.id} standId={vino.stand_id} />
       </main>
     </SoloConEdad>
   );

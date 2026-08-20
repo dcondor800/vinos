@@ -13,6 +13,12 @@ import { createClient } from '@/lib/supabase/client';
 
 export interface LineaPedido {
   productoId: string;
+  /**
+   * Se guarda con la línea, no se resuelve del catálogo, para que el contador
+   * del encabezado sepa qué falta por recoger sin tener que cargar el catálogo.
+   * Null en pedidos guardados antes de que existiera el recojo por stand.
+   */
+  standId: string | null;
   cantidad: number;
 }
 
@@ -23,6 +29,8 @@ export interface PedidoLocal {
   id: string | null;
   codigo: string | null;
   sincronizado: boolean;
+  /** Stands ya pagados y recogidos. La feria se paga en varias paradas. */
+  recogidos: string[];
 }
 
 /** Sin O, 0, I ni 1: se dictan en voz alta en un salón ruidoso. */
@@ -44,6 +52,7 @@ const VACIO: PedidoLocal = {
   id: null,
   codigo: null,
   sincronizado: false,
+  recogidos: [],
 };
 
 function validar(dato: unknown): PedidoLocal | null {
@@ -57,6 +66,7 @@ function validar(dato: unknown): PedidoLocal | null {
     )
     .map((i) => ({
       productoId: i.productoId,
+      standId: typeof i.standId === 'string' ? i.standId : null,
       cantidad: Math.min(MAX_POR_VINO, Math.max(1, Math.round(i.cantidad))),
     }));
 
@@ -66,6 +76,9 @@ function validar(dato: unknown): PedidoLocal | null {
     id: typeof p.id === 'string' ? p.id : null,
     codigo: typeof p.codigo === 'string' ? p.codigo : null,
     sincronizado: p.sincronizado === true,
+    recogidos: Array.isArray(p.recogidos)
+      ? p.recogidos.filter((s): s is string => typeof s === 'string')
+      : [],
   };
 }
 
@@ -91,12 +104,36 @@ export function cantidadDe(pedido: PedidoLocal | null, productoId: string): numb
   return pedido?.items.find((i) => i.productoId === productoId)?.cantidad ?? 0;
 }
 
+export function standRecogido(pedido: PedidoLocal | null, standId: string): boolean {
+  return pedido?.recogidos.includes(standId) ?? false;
+}
+
+/**
+ * Solo lo que queda por recoger. Es lo que muestra el encabezado: una vez
+ * pagado y recogido un stand, esas botellas ya no son un pendiente y seguir
+ * contándolas haría que el pedido nunca se vacíe.
+ */
 export function totalBotellas(pedido: PedidoLocal | null): number {
-  return pedido?.items.reduce((n, i) => n + i.cantidad, 0) ?? 0;
+  if (!pedido) return 0;
+  const recogidos = new Set(pedido.recogidos);
+
+  return pedido.items
+    .filter((i) => !i.standId || !recogidos.has(i.standId))
+    .reduce((n, i) => n + i.cantidad, 0);
+}
+
+/** True cuando queda al menos una línea y ninguna está pendiente. */
+export function todoRecogido(pedido: PedidoLocal | null): boolean {
+  return (pedido?.items.length ?? 0) > 0 && totalBotellas(pedido) === 0;
 }
 
 /** Cantidad 0 o menos quita la línea. */
-export function fijarCantidad(slug: string, productoId: string, cantidad: number): PedidoLocal {
+export function fijarCantidad(
+  slug: string,
+  productoId: string,
+  cantidad: number,
+  standId?: string,
+): PedidoLocal {
   const actuales = leerPedido(slug).items;
   const limpia = Math.min(MAX_POR_VINO, Math.max(0, Math.round(cantidad)));
 
@@ -108,13 +145,23 @@ export function fijarCantidad(slug: string, productoId: string, cantidad: number
 
   return guardar(slug, {
     items: existe
-      ? actuales.map((i) => (i.productoId === productoId ? { ...i, cantidad: limpia } : i))
-      : [...actuales, { productoId, cantidad: limpia }],
+      ? actuales.map((i) =>
+          i.productoId === productoId
+            ? { ...i, cantidad: limpia, standId: standId ?? i.standId }
+            : i,
+        )
+      : [...actuales, { productoId, standId: standId ?? null, cantidad: limpia }],
   });
 }
 
-export function agregarAlPedido(slug: string, productoId: string): PedidoLocal {
-  return fijarCantidad(slug, productoId, cantidadDe(leerPedido(slug), productoId) + 1);
+export function agregarAlPedido(slug: string, productoId: string, standId?: string): PedidoLocal {
+  return fijarCantidad(slug, productoId, cantidadDe(leerPedido(slug), productoId) + 1, standId);
+}
+
+/** Marca un stand como pagado y recogido. Es local: no hay política de update. */
+export function marcarRecogido(slug: string, standId: string, recogido: boolean): PedidoLocal {
+  const actuales = leerPedido(slug).recogidos.filter((s) => s !== standId);
+  return guardar(slug, { recogidos: recogido ? [...actuales, standId] : actuales });
 }
 
 /** Datos que el pedido necesita del catálogo en el momento de confirmar. */
@@ -152,8 +199,19 @@ export function reabrirPedido(slug: string): PedidoLocal {
   return guardar(slug, { id: null, codigo: null, sincronizado: false });
 }
 
+/**
+ * Cierra el pedido en el dispositivo. La fila en Supabase se queda como está:
+ * sin política de update el cliente no puede marcarla 'completado', y quien
+ * cierre ese ciclo será el panel de bodega en la fase 2.
+ */
 export function vaciarPedido(slug: string): PedidoLocal {
-  return guardar(slug, { items: [], id: null, codigo: null, sincronizado: false });
+  return guardar(slug, {
+    items: [],
+    id: null,
+    codigo: null,
+    sincronizado: false,
+    recogidos: [],
+  });
 }
 
 /**
