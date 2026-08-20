@@ -64,7 +64,57 @@ const SINONIMOS_MARIDAJE: Record<string, string> = {
   solo: 'solo, para tomar',
   aperitivo: 'solo, para tomar',
   solo_para_tomar: 'solo, para tomar',
+  para_tomar: 'solo, para tomar',
+  solo_para_beber: 'solo, para tomar',
 };
+
+function equivalenteMaridaje(bruto: string): string | null {
+  const normal = normalizarEncabezado(bruto);
+  const directo = MARIDAJES.find((m) => normalizarEncabezado(m) === normal);
+  return directo ?? SINONIMOS_MARIDAJE[normal] ?? null;
+}
+
+/**
+ * Separa la celda de maridajes. No basta con partir por comas: el propio
+ * vocabulario incluye "solo, para tomar", que lleva una coma dentro. Así que se
+ * prueba primero la celda entera, después por | y ;, y solo si un trozo no
+ * significa nada se intenta partirlo por comas.
+ */
+export function separarMaridajes(celda: string): { valores: string[]; desconocidos: string[] } {
+  const valores: string[] = [];
+  const desconocidos: string[] = [];
+
+  const agregar = (v: string) => {
+    if (!valores.includes(v)) valores.push(v);
+  };
+
+  if (celda.trim() === '') return { valores, desconocidos };
+
+  const entera = equivalenteMaridaje(celda);
+  if (entera) return { valores: [entera], desconocidos };
+
+  for (const trozo of celda.split(/[|;]/).map((s) => s.trim()).filter(Boolean)) {
+    const directo = equivalenteMaridaje(trozo);
+    if (directo) {
+      agregar(directo);
+      continue;
+    }
+
+    // Puede ser una lista separada por comas, que es como la escribe mucha gente.
+    if (trozo.includes(',')) {
+      for (const parte of trozo.split(',').map((s) => s.trim()).filter(Boolean)) {
+        const equivalente = equivalenteMaridaje(parte);
+        if (equivalente) agregar(equivalente);
+        else desconocidos.push(parte);
+      }
+      continue;
+    }
+
+    desconocidos.push(trozo);
+  }
+
+  return { valores, desconocidos };
+}
 
 const TIPOS: Record<string, TipoVino> = {
   tinto: 'tinto',
@@ -230,17 +280,9 @@ export function validarCsv(texto: string): Validacion {
     }
 
     // --- maridajes contra el vocabulario cerrado
-    const maridajes: string[] = [];
-    for (const bruto of aLista(celda('maridajes'))) {
-      const normal = normalizarEncabezado(bruto);
-      const directo = MARIDAJES.find((m) => normalizarEncabezado(m) === normal);
-      const equivalente = directo ?? SINONIMOS_MARIDAJE[normal];
-
-      if (equivalente) {
-        if (!maridajes.includes(equivalente)) maridajes.push(equivalente);
-      } else {
-        problema('maridajes', `"${bruto}" no está en la lista de maridajes`);
-      }
+    const { valores: maridajes, desconocidos } = separarMaridajes(celda('maridajes'));
+    for (const bruto of desconocidos) {
+      problema('maridajes', `"${bruto}" no está en la lista de maridajes`);
     }
 
     if (problemas.some((p) => p.fila === numero)) continue;

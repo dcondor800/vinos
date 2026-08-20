@@ -114,6 +114,50 @@ describe('validarCsv', () => {
     expect(r.problemas[0].mensaje).toContain('sushi');
   });
 
+  it('acepta "solo, para tomar", que lleva una coma dentro del propio valor', () => {
+    const r = validarCsv(
+      `${ENCABEZADO};maridajes\nValle Norte;A-04;Cabernet;tinto;89;"solo, para tomar"`,
+    );
+
+    expect(r.problemas).toEqual([]);
+    expect(r.filas[0].maridajes).toEqual(['solo, para tomar']);
+  });
+
+  it('lo acepta sin comillas, que es como queda en un archivo separado por ;', () => {
+    const r = validarCsv(
+      `${ENCABEZADO};maridajes\nValle Norte;A-04;Cabernet;tinto;89;solo, para tomar`,
+    );
+
+    expect(r.problemas).toEqual([]);
+    expect(r.filas[0].maridajes).toEqual(['solo, para tomar']);
+  });
+
+  it('acepta ese valor combinado con otros por barra', () => {
+    const r = validarCsv(
+      `${ENCABEZADO};maridajes\nValle Norte;A-04;Cabernet;tinto;89;"quesos|solo, para tomar"`,
+    );
+
+    expect(r.problemas).toEqual([]);
+    expect(r.filas[0].maridajes).toEqual(['quesos', 'solo, para tomar']);
+  });
+
+  it('acepta una lista separada por comas, que es como la escribe mucha gente', () => {
+    const r = validarCsv(
+      `${ENCABEZADO};maridajes\nValle Norte;A-04;Cabernet;tinto;89;"carnes rojas, quesos"`,
+    );
+
+    expect(r.problemas).toEqual([]);
+    expect(r.filas[0].maridajes).toEqual(['carnes rojas', 'quesos']);
+  });
+
+  it('no repite un maridaje que aparece dos veces', () => {
+    const r = validarCsv(
+      `${ENCABEZADO};maridajes\nValle Norte;A-04;Cabernet;tinto;89;"quesos|Queso"`,
+    );
+
+    expect(r.filas[0].maridajes).toEqual(['quesos']);
+  });
+
   it('traduce las variantes conocidas de maridaje', () => {
     const r = validarCsv(
       `${ENCABEZADO};maridajes\nValle Norte;A-04;Cabernet;tinto;89;Carne roja|Pescado|POLLO`,
