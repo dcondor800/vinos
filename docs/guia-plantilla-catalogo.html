@@ -1,0 +1,570 @@
+<title>Plantilla de catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+  :root {
+    --ground: #f4f6f4;
+    --surface: #ffffff;
+    --ink: #191d1f;
+    --muted: #5e6b6e;
+    --rule: #d8dedb;
+    --rule-soft: #e7ebe9;
+    --accent: #7a2233;
+    --accent-ink: #7a2233;
+    --accent-wash: #f6ecee;
+    --flag: #8a5a12;
+    --flag-wash: #faf1e0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #131718;
+      --surface: #1b2123;
+      --ink: #e7ecea;
+      --muted: #94a1a3;
+      --rule: #2c3437;
+      --rule-soft: #232b2d;
+      --accent: #d1697d;
+      --accent-ink: #e08a9a;
+      --accent-wash: #2a1b20;
+      --flag: #d3a45c;
+      --flag-wash: #2a2318;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #131718;
+    --surface: #1b2123;
+    --ink: #e7ecea;
+    --muted: #94a1a3;
+    --rule: #2c3437;
+    --rule-soft: #232b2d;
+    --accent: #d1697d;
+    --accent-ink: #e08a9a;
+    --accent-wash: #2a1b20;
+    --flag: #d3a45c;
+    --flag-wash: #2a2318;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hoja {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  h1, h2, h3 { font-family: Bitter, Georgia, serif; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2rem, 5vw, 2.7rem); font-weight: 600; line-height: 1.12; letter-spacing: -0.015em; }
+  h2 { font-size: 1.45rem; font-weight: 600; line-height: 1.25; }
+  h3 { font-size: 1.05rem; font-weight: 600; }
+  p { margin: 0; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .entrada { display: flex; flex-direction: column; gap: 0.9rem; }
+  .entrada > p { max-width: 62ch; }
+  .lead { font-size: 1.08rem; color: var(--muted); max-width: 62ch; }
+
+  section { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .titulo-seccion {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .titulo-seccion .cuenta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* --- reglas rápidas --- */
+  .reglas { display: flex; flex-direction: column; gap: 0; }
+  .reglas li {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: 0.6rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .reglas { list-style: none; margin: 0; padding: 0; }
+  .reglas li:last-child { border-bottom: 0; }
+  .reglas .marca { color: var(--accent-ink); font-weight: 600; }
+
+  /* --- fichas de columna --- */
+  .campos { display: flex; flex-direction: column; gap: 0; }
+  .campo {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: 0 1.75rem;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+    align-items: start;
+  }
+  .campo:last-child { border-bottom: 0; }
+
+  .campo .llave { display: flex; flex-direction: column; gap: 0.4rem; }
+  .campo code.nombre {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--accent-ink);
+    word-break: break-word;
+  }
+  .marca-obligatoria {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    background: var(--accent-wash);
+    border-radius: 2px;
+    padding: 0.12rem 0.4rem;
+    width: fit-content;
+  }
+  .campo .valor { display: flex; flex-direction: column; gap: 0.5rem; }
+  .campo .valor p { max-width: 58ch; }
+  .ejemplo {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.83rem;
+    color: var(--muted);
+  }
+  .ejemplo b { color: var(--ink); font-weight: 500; }
+
+  @media (max-width: 34rem) {
+    .campo { grid-template-columns: 1fr; gap: 0.5rem; }
+    .campo .llave { flex-direction: row; align-items: center; gap: 0.6rem; }
+  }
+
+  /* --- tablas de escala --- */
+  .escalas { display: flex; flex-direction: column; gap: 1.75rem; }
+  .escala { display: flex; flex-direction: column; gap: 0.6rem; }
+  .escala > p { color: var(--muted); font-size: 0.95rem; max-width: 60ch; }
+  .tabla-envoltura { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--rule-soft); }
+  tr:last-child td { border-bottom: 0; }
+  th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  td.n {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-ink);
+    width: 2.5rem;
+  }
+
+  /* --- vocabulario cerrado --- */
+  .vocabulario { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+  .vocabulario li {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.3rem 0.65rem;
+  }
+
+  /* --- avisos --- */
+  .aviso {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: var(--flag-wash);
+    border-left: 3px solid var(--flag);
+    padding: 0.9rem 1.1rem;
+    font-size: 0.95rem;
+  }
+  .aviso strong { font-weight: 600; }
+  .aviso p { max-width: 60ch; }
+
+  /* --- pasos de guardado --- */
+  ol.pasos { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.55rem; }
+  ol.pasos li { padding-left: 0.3rem; }
+  ol.pasos li::marker { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; color: var(--muted); }
+
+  code.inline {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.88em;
+    background: var(--rule-soft);
+    border-radius: 2px;
+    padding: 0.08em 0.32em;
+  }
+
+  .cierre {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .cierre p { max-width: 60ch; }
+
+  a { color: var(--accent-ink); }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<div class="hoja">
+
+  <header class="entrada">
+    <p class="eyebrow">Instrucciones para expositores</p>
+    <h1>Cómo llenar la plantilla de catálogo</h1>
+    <p class="lead">
+      Con estos datos, los asistentes de la feria van a encontrar sus vinos desde el celular
+      según lo que les guste, y la app les va a indicar en qué stand recogerlos. Mientras más
+      completa esté la ficha de un vino, más veces se va a recomendar.
+    </p>
+    <p>
+      El archivo es una hoja de cálculo con una fila por vino. Ábralo en Excel, complete lo que
+      tenga y devuélvalo en formato CSV.
+    </p>
+  </header>
+
+  <section>
+    <div class="titulo-seccion"><h2>Antes de empezar</h2></div>
+    <ul class="reglas">
+      <li><span class="marca">1</span><span>Una fila por vino. Si trae quince etiquetas, son quince filas.</span></li>
+      <li><span class="marca">2</span><span>No cambie ni borre los nombres de las columnas. Puede dejarlas vacías, pero la primera fila del archivo tiene que quedar tal como está.</span></li>
+      <li><span class="marca">3</span><span>El orden de las columnas no importa. Puede moverlas si le resulta más cómodo.</span></li>
+      <li><span class="marca">4</span><span>Si un dato no lo tiene, déjelo en blanco. Un campo vacío es mejor que un dato inventado: el sistema sabe trabajar con vacíos, pero no puede saber que un número es falso.</span></li>
+      <li><span class="marca">5</span><span>Borre la fila de ejemplo antes de enviarnos el archivo.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="titulo-seccion">
+      <h2>Columnas obligatorias</h2>
+      <span class="cuenta">5 de 21</span>
+    </div>
+    <p class="lead">Sin estas cinco, la fila no se puede cargar.</p>
+
+    <div class="campos">
+      <div class="campo">
+        <div class="llave">
+          <code class="nombre">bodega</code>
+          <span class="marca-obligatoria">Obligatoria</span>
+        </div>
+        <div class="valor">
+          <p>El nombre de su bodega, tal como quiere que aparezca en la app. Escríbalo exactamente igual en todas las filas: si en una fila dice «Bodega Valle Norte» y en otra «Valle Norte», el sistema las va a tomar como dos bodegas distintas.</p>
+          <p class="ejemplo">Ejemplo: <b>Bodega Valle Norte</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave">
+          <code class="nombre">stand</code>
+          <span class="marca-obligatoria">Obligatoria</span>
+        </div>
+        <div class="valor">
+          <p>El código del stand que le asignó la organización. Es el dato con el que la persona los va a ir a buscar, así que tiene que coincidir con el cartel que va a estar colgado ese día. Si todavía no lo tiene, pídalo antes de enviar el archivo.</p>
+          <p class="ejemplo">Ejemplo: <b>A-04</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave">
+          <code class="nombre">nombre</code>
+          <span class="marca-obligatoria">Obligatoria</span>
+        </div>
+        <div class="valor">
+          <p>El nombre del vino como aparece en la etiqueta, sin repetir el nombre de la bodega. Dos vinos suyos no pueden llamarse igual.</p>
+          <p class="ejemplo">Ejemplo: <b>Reserva Cabernet Sauvignon</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave">
+          <code class="nombre">tipo</code>
+          <span class="marca-obligatoria">Obligatoria</span>
+        </div>
+        <div class="valor">
+          <p>Una de estas cinco palabras: <code class="inline">tinto</code>, <code class="inline">blanco</code>, <code class="inline">rosado</code>, <code class="inline">espumante</code> o <code class="inline">dulce</code>. Use <code class="inline">dulce</code> para los vinos de postre y de cosecha tardía.</p>
+          <p class="ejemplo">Ejemplo: <b>tinto</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave">
+          <code class="nombre">precio</code>
+          <span class="marca-obligatoria">Obligatoria</span>
+        </div>
+        <div class="valor">
+          <p>El precio por botella al público durante la feria. Solo el número: sin «S/», sin separador de miles y sin texto. Los asistentes filtran por presupuesto, así que un precio mal escrito deja el vino fuera de esas búsquedas.</p>
+          <p class="ejemplo">Ejemplo: <b>89</b> &nbsp;o&nbsp; <b>89.50</b></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="titulo-seccion">
+      <h2>Datos del vino</h2>
+      <span class="cuenta">Opcionales</span>
+    </div>
+
+    <div class="campos">
+      <div class="campo">
+        <div class="llave"><code class="nombre">zona</code></div>
+        <div class="valor">
+          <p>La zona del salón donde está su stand, si la feria las tiene definidas. Aparece junto al código del stand para ayudar a ubicarlo.</p>
+          <p class="ejemplo">Ejemplo: <b>Chile</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">varietal</code></div>
+        <div class="valor">
+          <p>La cepa. Si es una mezcla, escríbala como la nombra en su etiqueta.</p>
+          <p class="ejemplo">Ejemplo: <b>Cabernet Sauvignon</b> &nbsp;o&nbsp; <b>Blend Malbec-Syrah</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">pais</code></div>
+        <div class="valor">
+          <p>País de origen del vino.</p>
+          <p class="ejemplo">Ejemplo: <b>Chile</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">region</code></div>
+        <div class="valor">
+          <p>El valle o la denominación de origen.</p>
+          <p class="ejemplo">Ejemplo: <b>Valle del Maipo</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">anada</code></div>
+        <div class="valor">
+          <p>El año de cosecha, con cuatro dígitos. Déjelo vacío si el vino no lleva añada.</p>
+          <p class="ejemplo">Ejemplo: <b>2021</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">grado_alcohol</code></div>
+        <div class="valor">
+          <p>El grado alcohólico, solo el número, sin el símbolo de porcentaje.</p>
+          <p class="ejemplo">Ejemplo: <b>13.5</b></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="titulo-seccion">
+      <h2>El perfil del vino, del 1 al 5</h2>
+      <span class="cuenta">Opcionales</span>
+    </div>
+    <p class="lead">
+      Estas cuatro columnas son las que más trabajan. Son las que permiten que a alguien que pide
+      «algo con cuerpo, bien seco, para carnes» le aparezca su vino y no el del vecino. Si las deja
+      vacías, el vino se carga igual y se puede ver en el catálogo, pero compite en desventaja
+      frente a los que sí las tienen.
+    </p>
+    <p>
+      Ponga un número entero del 1 al 5, sin decimales. No busque precisión de laboratorio: lo que
+      importa es que sea coherente con cómo describiría el vino a un cliente en el mostrador.
+    </p>
+
+    <div class="escalas">
+      <div class="escala">
+        <h3><code class="nombre">cuerpo</code></h3>
+        <p>Qué tanto llena la boca. No es el alcohol ni el color: es el peso que se siente al beberlo.</p>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>N.º</th><th>Significa</th></tr></thead>
+            <tbody>
+              <tr><td class="n">1</td><td>Ligero, se bebe con facilidad, casi sin peso</td></tr>
+              <tr><td class="n">2</td><td>Suave</td></tr>
+              <tr><td class="n">3</td><td>Equilibrado, ni ligero ni pesado</td></tr>
+              <tr><td class="n">4</td><td>Con cuerpo, se nota denso</td></tr>
+              <tr><td class="n">5</td><td>Intenso y concentrado, llena la boca</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="escala">
+        <h3><code class="nombre">dulzor</code></h3>
+        <p>Cuánta azúcar se percibe al beber. Es la pregunta que más pesa en la recomendación, porque es la que hace que a alguien un vino «no le guste».</p>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>N.º</th><th>Significa</th></tr></thead>
+            <tbody>
+              <tr><td class="n">1</td><td>Bien seco, sin nada de dulzor (un brut nature)</td></tr>
+              <tr><td class="n">2</td><td>Seco</td></tr>
+              <tr><td class="n">3</td><td>Intermedio, apenas se percibe</td></tr>
+              <tr><td class="n">4</td><td>Semidulce</td></tr>
+              <tr><td class="n">5</td><td>Dulce, de postre o cosecha tardía</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="escala">
+        <h3><code class="nombre">acidez</code></h3>
+        <p>La frescura. Un vino de acidez alta hace salivar y se siente vivo; uno de acidez baja se siente blando.</p>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>N.º</th><th>Significa</th></tr></thead>
+            <tbody>
+              <tr><td class="n">1</td><td>Baja, se siente blando</td></tr>
+              <tr><td class="n">2</td><td>Poca</td></tr>
+              <tr><td class="n">3</td><td>Media</td></tr>
+              <tr><td class="n">4</td><td>Fresca</td></tr>
+              <tr><td class="n">5</td><td>Muy punzante, marcadamente cítrica</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="escala">
+        <h3><code class="nombre">taninos</code></h3>
+        <p>La aspereza que seca la boca. <strong>Solo tiene sentido en tintos:</strong> en blancos, rosados y espumantes deje la casilla vacía.</p>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>N.º</th><th>Significa</th></tr></thead>
+            <tbody>
+              <tr><td class="n">1</td><td>Suaves, casi no se notan</td></tr>
+              <tr><td class="n">2</td><td>Ligeros</td></tr>
+              <tr><td class="n">3</td><td>Medios</td></tr>
+              <tr><td class="n">4</td><td>Marcados, secan un poco la boca</td></tr>
+              <tr><td class="n">5</td><td>Muy marcados y astringentes, de guarda</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="titulo-seccion">
+      <h2>Notas, maridajes y descripción</h2>
+      <span class="cuenta">Opcionales</span>
+    </div>
+
+    <div class="campos">
+      <div class="campo">
+        <div class="llave"><code class="nombre">notas</code></div>
+        <div class="valor">
+          <p>Los aromas y sabores del vino, de dos a cuatro, separados por una barra vertical <code class="inline">|</code>. Palabras cortas: se muestran como etiquetas en la ficha, no como una frase.</p>
+          <p class="ejemplo">Ejemplo: <b>cassis|pimiento|vainilla</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">maridajes</code></div>
+        <div class="valor">
+          <p>Con qué se acompaña, separados por <code class="inline">|</code>. Esta columna tiene una lista cerrada de siete opciones y hay que usarlas tal cual están escritas abajo.</p>
+          <ul class="vocabulario">
+            <li>carnes rojas</li>
+            <li>aves</li>
+            <li>pescados y mariscos</li>
+            <li>pastas</li>
+            <li>quesos</li>
+            <li>postres</li>
+            <li>solo, para tomar</li>
+          </ul>
+          <p class="ejemplo">Ejemplo: <b>carnes rojas|quesos</b></p>
+          <div class="aviso">
+            <p><strong>Por qué esta columna es especial.</strong> La app cruza estas palabras exactas con lo que responde el asistente en el cuestionario. Si escribe «carne roja» en singular o «cordero», el vino se carga sin dar error y se ve perfecto en el catálogo, pero nunca aparecerá recomendado a quien pidió carnes rojas. Si su vino no encaja en ninguna de las siete, deje la casilla vacía.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">descripcion</code></div>
+        <div class="valor">
+          <p>Una o dos frases sobre el vino, las que le diría a alguien que lo prueba por primera vez. Se muestra en la ficha, así que evite el texto largo de folleto: nadie lee un párrafo de pie en un salón.</p>
+          <p class="ejemplo">Ejemplo: <b>Tinto estructurado con paso por barrica y taninos firmes.</b></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">imagen_url</code></div>
+        <div class="valor">
+          <p>El enlace a la foto de la botella, si ya la tiene publicada en algún sitio. Preferimos foto vertical con fondo claro y liso. Si no tiene el enlace, deje la casilla vacía y envíenos las fotos aparte.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="titulo-seccion">
+      <h2>Control</h2>
+      <span class="cuenta">Opcionales</span>
+    </div>
+
+    <div class="campos">
+      <div class="campo">
+        <div class="llave"><code class="nombre">disponible</code></div>
+        <div class="valor">
+          <p>Escriba <code class="inline">si</code> o <code class="inline">no</code>. Si la deja vacía, entendemos que sí. Póngale <code class="inline">no</code> a un vino que quiere dejar en la lista pero que no va a llevar a la feria: no se muestra a nadie y no hay que borrar la fila.</p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <div class="llave"><code class="nombre">destacado</code></div>
+        <div class="valor">
+          <p>Escriba <code class="inline">si</code> en el vino o los dos vinos que más quiere mostrar. Si la deja vacía, entendemos que no. Marcar todos equivale a no marcar ninguno.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="titulo-seccion"><h2>Cómo guardar y enviar el archivo</h2></div>
+    <ol class="pasos">
+      <li>En Excel, vaya a <strong>Archivo → Guardar como</strong>.</li>
+      <li>En el tipo de archivo elija <strong>CSV UTF-8 (delimitado por comas)</strong>. Es importante que diga UTF-8.</li>
+      <li>Excel le va a advertir que se pierde el formato. Acepte: los colores y las negritas no hacen falta, los datos sí se conservan.</li>
+      <li>Envíenos el archivo <code class="inline">.csv</code> resultante.</li>
+    </ol>
+    <div class="aviso">
+      <p><strong>Si al abrir el archivo ve «Ã±» donde debería decir «ñ»</strong>, se guardó con la codificación equivocada. Vuelva al paso 2 y asegúrese de elegir la opción que dice UTF-8.</p>
+    </div>
+  </section>
+
+  <footer class="cierre">
+    <p>Cualquier duda con una columna, escríbanos antes de completar las quince filas: es más rápido resolverlo una vez que corregir el archivo entero después.</p>
+    <p>[Nombre del contacto de la organización] · [correo] · Fecha límite de entrega: [fecha]</p>
+  </footer>
+
+</div>
