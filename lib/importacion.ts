@@ -192,9 +192,44 @@ function nombreDeArchivoValido(valor: string): boolean {
   return EXTENSIONES.some((e) => v.toLowerCase().endsWith(e));
 }
 
-/** Excel en español escribe los decimales con coma. */
-function aNumero(v: string): number | null {
-  const n = Number(v.replace(/\s/g, '').replace(',', '.'));
+/**
+ * Números tal como los escribe la gente en español: decimales con coma
+ * ("89,50") y miles con punto ("1.250").
+ *
+ * Lo delicado es la ambigüedad de un separador suelto. Antes, "1.250" se leía
+ * como 1,25 y un vino de S/1250 entraba al catálogo costando S/1,25 — sin dar
+ * error y viéndose bien. La regla: un separador seguido de exactamente tres
+ * dígitos es de miles; con una o dos cifras detrás es decimal. Nadie escribe
+ * "1.250" para decir uno con veinticinco.
+ */
+export function aNumero(v: string): number | null {
+  const limpio = v.replace(/\s/g, '');
+  if (limpio === '') return null;
+
+  const ultimoPunto = limpio.lastIndexOf('.');
+  const ultimaComa = limpio.lastIndexOf(',');
+
+  let normalizado: string;
+
+  if (ultimoPunto >= 0 && ultimaComa >= 0) {
+    // Con los dos presentes, el último es el decimal y el otro es de miles.
+    const decimal = ultimoPunto > ultimaComa ? '.' : ',';
+    const miles = decimal === '.' ? ',' : '.';
+    normalizado = limpio.split(miles).join('').replace(decimal, '.');
+  } else {
+    const sep = ultimoPunto >= 0 ? '.' : ultimaComa >= 0 ? ',' : '';
+
+    if (sep === '') {
+      normalizado = limpio;
+    } else {
+      const partes = limpio.split(sep);
+      const decimales = partes[partes.length - 1].length;
+      // Repetido, o con tres cifras detrás: separador de miles.
+      normalizado = partes.length > 2 || decimales === 3 ? partes.join('') : partes.join('.');
+    }
+  }
+
+  const n = Number(normalizado);
   return Number.isFinite(n) ? n : null;
 }
 
