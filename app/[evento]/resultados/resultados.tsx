@@ -107,7 +107,7 @@ export function Resultados({
            así que mandar ahí devolvería a esta misma lista. El quiz arranca en
            la pregunta 1 con las respuestas anteriores ya marcadas. */
         <div className="mt-8 flex flex-col gap-3 border-t border-borde pt-6">
-          <Link href={`/${slug}/quiz`} className="boton boton-secundario w-full text-sm">
+          <Link href={`/${slug}/quiz`} className="boton boton-primario w-full text-sm">
             {perfil ? "Volver al inicio" : "Responder el quiz"}
           </Link>
 

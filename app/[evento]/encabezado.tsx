@@ -53,14 +53,21 @@ export function Encabezado({
         {titulo}
       </span>
 
-      {/* Solo cuando hay algo dentro: un contador en cero es ruido. */}
+      {/* Solo cuando hay algo dentro: un contador en cero es ruido.
+          Va en color de marca y con la palabra, no solo el icono: en la esquina
+          superior derecha, que es la más difícil de alcanzar con el pulgar, un
+          botón discreto se pierde. La key hace que el pulso se repita en cada
+          cambio de cantidad, que es lo que enseña dónde vive el pedido. */}
       {botellas > 0 ? (
         <Link
+          key={botellas}
           href={`/${slug}/pedido`}
-          className="boton boton-secundario gap-1.5 px-3 py-1.5 text-sm"
+          data-pulso
+          className="boton gap-1.5 bg-marca px-3.5 py-1.5 text-sm font-medium text-sobre-marca"
           aria-label={`Ver mi pedido, ${botellas} ${botellas === 1 ? "botella" : "botellas"}`}
         >
           <Botella />
+          <span>Pedido</span>
           <span className="tabular-nums">{botellas}</span>
         </Link>
       ) : (

@@ -145,6 +145,18 @@ a[data-accion] {
   animation: entrar-adelante 220ms var(--salida) both;
 }
 
+/**
+ * Acuse del pedido al cambiar la cantidad. Cumple una función: la primera vez
+ * que alguien agrega una botella, el movimiento le muestra dónde quedó.
+ */
+@keyframes pulso {
+  40% { transform: scale(1.12); }
+}
+
+[data-pulso] {
+  animation: pulso 260ms var(--salida);
+}
+
 [data-paso="atras"] {
   animation-name: entrar-atras;
 }
@@ -158,7 +170,8 @@ a[data-accion] {
   }
 
   /* Movimiento fuera; el cambio de opacidad ayuda a entender y se queda. */
-  [data-paso] {
+  [data-paso],
+  [data-pulso] {
     animation: none;
   }
 

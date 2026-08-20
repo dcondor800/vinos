@@ -123,15 +123,6 @@ export function Pedido({
                 : `Tus botellas están en ${grupos.length} stands. Se paga en cada uno.`}
           </p>
 
-          {cerrado && (
-            <Referencia
-              slug={slug}
-              codigo={pedido.codigo!}
-              sincronizado={pedido.sincronizado}
-              grupos={grupos}
-            />
-          )}
-
           <div className="mt-6 flex flex-col gap-5">
             {grupos.map((g) => (
               <section key={g.standId} className="rounded-2xl border border-borde">
@@ -211,6 +202,17 @@ export function Pedido({
             Precios referenciales. El pago se realiza en cada stand.
           </p>
 
+          {/* Al final de todo: es lo último que se necesita, después de haber
+              recorrido la lista. */}
+          {cerrado && (
+            <Referencia
+              slug={slug}
+              codigo={pedido.codigo!}
+              sincronizado={pedido.sincronizado}
+              grupos={grupos}
+            />
+          )}
+
           {/* Una vez confirmado no queda nada que tocar: la pantalla pasa a ser
               la lista con la que se camina, y la barra fija estorbaría. */}
           {!cerrado && (
@@ -263,7 +265,7 @@ function Referencia({
   }
 
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-borde px-4 py-3">
+    <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-borde px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <p className="text-sm text-hueso-suave">
         Referencia{" "}
         <span className="font-medium tracking-wider text-hueso tabular-nums">{codigo}</span>
