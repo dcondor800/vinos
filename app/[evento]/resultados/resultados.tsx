@@ -1,14 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import type { ProductoCatalogo } from "@/lib/catalogo";
 import { simboloMoneda } from "@/lib/moneda";
 import { describirPerfil } from "@/lib/recomendacion";
 import { seleccionarSugerencias } from "@/lib/sugerencias";
-import { useExigeEdad, usePerfil, useSincronizacion } from "@/lib/usar-sesion";
+import { useExigeEdad, usePerfil, useSincronizacion, useVista } from "@/lib/usar-sesion";
+import { filtrar, guardarVista } from "@/lib/vista";
 import { Encabezado } from "../encabezado";
+import { Esqueleto } from "../esqueleto";
 import { TarjetaVino } from "../tarjeta-vino";
+import { Filtros } from "./filtros";
 
 export function Resultados({
   slug,
@@ -21,9 +24,8 @@ export function Resultados({
 }) {
   const sesion = useExigeEdad(slug);
   const perfil = usePerfil(slug);
+  const vista = useVista(slug);
   useSincronizacion(slug);
-
-  const [verTodo, setVerTodo] = useState(false);
 
   // Todo el trabajo pasa aquí, sobre el catálogo que ya está en memoria: sin
   // red de por medio y sin spinner.
@@ -32,95 +34,114 @@ export function Resultados({
     [catalogo, perfil],
   );
 
-  const porNombre = useMemo(
-    () => [...catalogo].sort((a, b) => a.nombre.localeCompare(b.nombre, "es")),
+  const filtrado = useMemo(
+    () =>
+      vista
+        ? filtrar(catalogo, vista).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
+        : [],
+    [catalogo, vista],
+  );
+
+  const zonas = useMemo(
+    () => [...new Set(catalogo.map((p) => p.zona).filter((z): z is string => !!z))].sort(),
     [catalogo],
   );
 
-  if (sesion === undefined || perfil === undefined) return <div className="flex-1" aria-hidden />;
+  if (sesion === undefined || perfil === undefined || vista === undefined) return <Esqueleto />;
   if (!sesion?.edadConfirmada) return null;
 
-  const sugiriendo = calculo !== null && !verTodo;
+  // Sin perfil no hay sugerencias que mostrar: solo existe el catálogo.
+  const sugiriendo = calculo !== null && !vista.todo;
+  const vacio = catalogo.length === 0;
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
-      <Encabezado slug={slug} volverA={`/${slug}`} titulo={sugiriendo ? "Sugerencias" : "Catálogo"} />
+      <Encabezado slug={slug} volverA={`/${slug}`} />
 
-      <header className="border-b border-borde pt-5 pb-5">
+      <header className="pt-5">
         <h1 className="text-2xl font-medium tracking-tight">
-          {sugiriendo ? "Para ti" : "Catálogo completo"}
+          {sugiriendo ? "Mis sugerencias" : "Todo el catálogo"}
         </h1>
 
-        {sugiriendo && perfil ? (
-          // El resumen del perfil y su edición van juntos: es el camino de
-          // vuelta al quiz, así que tiene que verse como un botón.
-          <div className="mt-2 flex items-start justify-between gap-3">
-            <p className="text-sm text-hueso-suave">
-              {describirPerfil(perfil.perfil, simboloMoneda(moneda))}
-            </p>
-            <Link href={`/${slug}/quiz`} className="boton boton-secundario shrink-0 py-1.5 text-sm">
-              Cambiar
-            </Link>
-          </div>
-        ) : (
+        {sugiriendo && perfil && (
           <p className="mt-2 text-sm text-hueso-suave">
-            {catalogo.length} {catalogo.length === 1 ? "vino" : "vinos"} en la feria.
+            {describirPerfil(perfil.perfil, simboloMoneda(moneda))}
           </p>
         )}
       </header>
 
-      {sugiriendo && calculo?.ampliada && (
-        <p className="mt-4 rounded-xl border border-borde bg-superficie-alta px-4 py-3 text-sm text-hueso-suave">
-          Ampliamos la búsqueda para mostrarte más opciones.
-        </p>
-      )}
-
-      <ul className="mt-4 flex flex-col gap-3">
-        {sugiriendo && calculo
-          ? calculo.lista.map((s) => (
-              <li key={s.producto.id}>
-                <TarjetaVino
-                  slug={slug}
-                  producto={s.producto as ProductoCatalogo}
-                  moneda={moneda}
-                  razones={s.razones}
-                />
-              </li>
-            ))
-          : porNombre.map((p) => (
-              <li key={p.id}>
-                <TarjetaVino slug={slug} producto={p} moneda={moneda} />
-              </li>
-            ))}
-      </ul>
-
-      {catalogo.length === 0 ? (
-        <p className="mt-8 text-sm text-hueso-suave">
-          Todavía no hay vinos cargados para esta feria.
-        </p>
-      ) : (
-        /* Repetido al final: tras desplazarse la cabecera ya no está a la vista,
-           y hay que poder rehacer el quiz sin volver arriba.
-
-           "Volver al inicio" apunta al quiz, no a la pantalla de bienvenida:
-           esa rebota hacia adelante a quien ya confirmó la edad y tiene perfil,
-           así que mandar ahí devolvería a esta misma lista. El quiz arranca en
-           la pregunta 1 con las respuestas anteriores ya marcadas. */
-        <div className="mt-8 flex flex-col gap-3 border-t border-borde pt-6">
-          <Link href={`/${slug}/quiz`} className="boton boton-primario w-full text-sm">
-            {perfil ? "Volver al inicio" : "Responder el quiz"}
+      {vacio ? (
+        /* El estado vacío también necesita una salida: le va a pasar al cliente
+           montando la feria antes de importar el catálogo. */
+        <div className="mt-10">
+          <p className="text-hueso-suave text-pretty">
+            Todavía no hay vinos cargados para esta feria. Vuelve a intentarlo en un rato.
+          </p>
+          <Link href="/" className="boton boton-secundario mt-6 w-full text-sm">
+            Ver otras ferias
           </Link>
-
-          {perfil && (
-            <button
-              type="button"
-              onClick={() => setVerTodo(!verTodo)}
-              className="text-sm text-hueso-suave underline underline-offset-4"
-            >
-              {sugiriendo ? "Ver el catálogo completo" : "Ver mis sugerencias"}
-            </button>
-          )}
         </div>
+      ) : (
+        <>
+          {sugiriendo ? (
+            <>
+              {calculo?.ampliada && (
+                <p className="mt-4 rounded-xl border border-borde bg-superficie-alta px-4 py-3 text-sm text-hueso-suave">
+                  Ampliamos la búsqueda para mostrarte más opciones.
+                </p>
+              )}
+
+              <ul className="mt-4 flex flex-col gap-3">
+                {calculo!.lista.map((s) => (
+                  <li key={s.producto.id}>
+                    <TarjetaVino
+                      slug={slug}
+                      producto={s.producto as ProductoCatalogo}
+                      moneda={moneda}
+                      razones={s.razones}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
+              <Filtros slug={slug} vista={vista} zonas={zonas} encontrados={filtrado.length} />
+
+              {filtrado.length === 0 ? (
+                <p className="mt-8 text-sm text-hueso-suave text-pretty">
+                  Prueba con otro nombre, o quita algún filtro para ver más vinos.
+                </p>
+              ) : (
+                <ul className="mt-4 flex flex-col gap-3">
+                  {filtrado.map((p) => (
+                    <li key={p.id}>
+                      <TarjetaVino slug={slug} producto={p} moneda={moneda} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+
+          <div className="mt-8 flex flex-col gap-3 border-t border-borde pt-6">
+            {/* Con borde y no en rojo: en esta pantalla el color de marca es del
+                pedido, que es lo que hay que poder encontrar rápido. */}
+            <Link href={`/${slug}/quiz`} className="boton boton-secundario w-full text-sm">
+              {perfil ? "Cambiar mis respuestas" : "Responder el quiz"}
+            </Link>
+
+            {perfil && (
+              <button
+                type="button"
+                onClick={() => guardarVista(slug, { todo: !vista.todo })}
+                className="boton text-sm text-hueso-suave underline underline-offset-4"
+              >
+                {sugiriendo ? "Ver todo el catálogo" : "Ver mis sugerencias"}
+              </button>
+            )}
+          </div>
+        </>
       )}
     </main>
   );

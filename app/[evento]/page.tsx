@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { obtenerEvento } from "@/lib/eventos";
+import { imagenPermitida } from "@/lib/imagenes";
 import { Entrada } from "./entrada";
 
 /** "18 al 21 de agosto" cuando cae en el mismo mes. */
@@ -32,7 +33,7 @@ export default async function PaginaEntrada({ params }: PageProps<"/[evento]">) 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pt-16 pb-[max(2.5rem,env(safe-area-inset-bottom))]">
       <header>
-        {evento.logo_url && (
+        {imagenPermitida(evento.logo_url) && (
           <Image
             src={evento.logo_url}
             alt={evento.nombre}

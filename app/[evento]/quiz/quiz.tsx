@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { guardarPerfil } from "@/lib/perfil";
 import { useExigeEdad, usePerfil, useSincronizacion } from "@/lib/usar-sesion";
+import { Esqueleto } from "../esqueleto";
 import type { TipoVino } from "@/lib/recomendacion";
 import {
   aPerfil,
@@ -39,13 +40,21 @@ export function Quiz({ slug, moneda }: { slug: string; moneda: string | null }) 
       // Quien ya tiene perfil viene de sus resultados y ahí tiene que volver.
       // Mandarlo a la entrada no sirve: esa pantalla lo rebota hacia adelante.
       salida={perfil ? `/${slug}/resultados` : `/${slug}`}
-      etiquetaSalida={perfil ? "Volver" : "Salir"}
+      etiquetaSalida="Volver"
     />
   );
 }
 
 function Espera() {
-  return <div className="flex-1" aria-hidden />;
+  return <Esqueleto filas={3} />;
+}
+
+/** "#p3" es la pregunta 3. Fuera de rango o sin hash, la primera. */
+function pasoDelHash(total: number): number {
+  if (typeof window === "undefined") return 0;
+
+  const n = Number(window.location.hash.replace("#p", ""));
+  return Number.isInteger(n) && n >= 1 && n <= total ? n - 1 : 0;
 }
 
 function Pasos({
@@ -63,23 +72,52 @@ function Pasos({
 }) {
   const router = useRouter();
   const preguntas = useMemo(() => construirPreguntas(moneda), [moneda]);
+  const total = preguntas.length;
 
-  const [indice, setIndice] = useState(0);
+  // La dirección viaja con el paso: la pregunta entra desde el lado hacia el
+  // que se movió el cuestionario, también cuando el movimiento lo provoca el
+  // gesto de retroceso del sistema.
+  const [paso, setPaso] = useState(() => ({
+    indice: pasoDelHash(total),
+    direccion: "adelante" as "adelante" | "atras",
+  }));
+  const { indice, direccion } = paso;
+
   const [respuestas, setRespuestas] = useState<Respuestas>(inicial);
-  // La pregunta entra desde el lado hacia el que se movió el cuestionario.
-  const [direccion, setDireccion] = useState<"adelante" | "atras">("adelante");
   // Evita que un doble toque salte dos pasos mientras corre la pausa visual.
   const avanzando = useRef(false);
 
+  /**
+   * Cada pregunta deja una entrada en el historial, así el gesto de retroceso
+   * de Android —el más usado del sistema— retrocede de pregunta en vez de tirar
+   * el cuestionario entero. Va por el hash y no por la ruta a propósito: un
+   * cambio de ruta pediría el evento al servidor otra vez, y con la señal del
+   * salón el quiz dejaría de sentirse instantáneo. El hash no toca la red ni
+   * despierta al router.
+   */
+  useEffect(() => {
+    const alRetroceder = () =>
+      setPaso((previo) => {
+        const n = pasoDelHash(total);
+        return { indice: n, direccion: n < previo.indice ? "atras" : "adelante" };
+      });
+
+    window.addEventListener("popstate", alRetroceder);
+    return () => window.removeEventListener("popstate", alRetroceder);
+  }, [total]);
+
   const pregunta = preguntas[indice];
-  const total = preguntas.length;
   const esUltima = indice === total - 1;
   const valorActual = respuestas[pregunta.clave];
 
+  function irAlPaso(n: number) {
+    window.history.pushState({ paso: n }, "", `#p${n + 1}`);
+    setPaso({ indice: n, direccion: n < indice ? "atras" : "adelante" });
+  }
+
   function avanzar(r: Respuestas) {
     if (!esUltima) {
-      setDireccion("adelante");
-      setIndice(indice + 1);
+      irAlPaso(indice + 1);
       avanzando.current = false;
       return;
     }
@@ -117,8 +155,9 @@ function Pasos({
 
   function retroceder() {
     avanzando.current = false;
-    setDireccion("atras");
-    setIndice(indice - 1);
+    // back() y no push: retroceder por el botón de la pantalla y por el del
+    // sistema tienen que dejar el mismo historial.
+    router.back();
   }
 
   const seleccionada = (o: Opcion) =>

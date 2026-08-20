@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductoCatalogo } from "@/lib/catalogo";
+import { imagenPermitida } from "@/lib/imagenes";
 import { formatearPrecio } from "@/lib/moneda";
 import type { Razon } from "@/lib/recomendacion";
 
@@ -28,7 +29,7 @@ export function TarjetaVino({
       className="boton w-full justify-start gap-4 rounded-2xl border border-borde bg-superficie-alta p-3 text-left active:bg-borde"
     >
       <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-superficie">
-        {producto.imagen_url ? (
+        {imagenPermitida(producto.imagen_url) ? (
           <Image
             src={producto.imagen_url}
             alt=""

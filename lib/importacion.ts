@@ -5,6 +5,7 @@
  */
 
 import { normalizarEncabezado, parsearCsv } from '@/lib/csv';
+import { imagenPermitida } from '@/lib/imagenes';
 import type { TipoVino } from '@/lib/recomendacion';
 
 export const COLUMNAS_REQUERIDAS = ['bodega', 'stand', 'nombre', 'tipo', 'precio'] as const;
@@ -277,6 +278,14 @@ export function validarCsv(texto: string): Validacion {
       } else {
         escalas[col] = n;
       }
+    }
+
+    // --- foto: un host ajeno rompe next/image y con él toda la pantalla
+    if (!vacio(celda('imagen_url')) && !imagenPermitida(celda('imagen_url'))) {
+      problema(
+        'imagen_url',
+        'la foto debe estar subida al almacenamiento de la feria, no enlazada desde otro sitio',
+      );
     }
 
     // --- maridajes contra el vocabulario cerrado

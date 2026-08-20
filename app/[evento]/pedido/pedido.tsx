@@ -18,6 +18,7 @@ import {
 } from "@/lib/pedido";
 import { useExigeEdad, usePedido, useSincronizacion } from "@/lib/usar-sesion";
 import { Encabezado } from "../encabezado";
+import { Esqueleto } from "../esqueleto";
 
 interface LineaVista {
   producto: ProductoCatalogo;
@@ -82,7 +83,7 @@ export function Pedido({
     };
   }, [catalogo, pedido]);
 
-  if (sesion === undefined || pedido === undefined) return <div className="flex-1" aria-hidden />;
+  if (sesion === undefined || pedido === undefined) return <Esqueleto filas={2} />;
   if (!sesion?.edadConfirmada) return null;
 
   const cerrado = pedido?.codigo != null;
@@ -271,7 +272,6 @@ export function Pedido({
                 codigo={pedido.codigo!}
                 sincronizado={pedido.sincronizado}
                 grupos={grupos}
-                completo={completo}
               />
             </>
           )}
@@ -307,13 +307,11 @@ function Referencia({
   codigo,
   sincronizado,
   grupos,
-  completo,
 }: {
   slug: string;
   codigo: string;
   sincronizado: boolean;
   grupos: GrupoStand[];
-  completo: boolean;
 }) {
   function reintentar() {
     void sincronizarPedido(
@@ -341,7 +339,7 @@ function Referencia({
         onClick={() => reabrirPedido(slug)}
         className="text-sm text-hueso-suave underline underline-offset-4"
       >
-        {completo ? "Volver a abrirlo" : "Modificar el pedido"}
+        Modificar el pedido
       </button>
 
       {/* El pedido vale igual sin red: lo que falta es la copia en el servidor. */}

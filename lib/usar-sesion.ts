@@ -12,6 +12,7 @@ import { instantaneaServidor, suscribir } from '@/lib/almacen';
 import { instantaneaPedido, type PedidoLocal } from '@/lib/pedido';
 import { instantaneaPerfil, sincronizarPerfil, type PerfilGuardado } from '@/lib/perfil';
 import { instantaneaSesion, sincronizarSesion, type SesionLocal } from '@/lib/sesion';
+import { instantaneaVista, VISTA_INICIAL, type Vista } from '@/lib/vista';
 
 export function useSesion(slug: string): SesionLocal | null | undefined {
   const leer = useCallback(() => instantaneaSesion(slug), [slug]);
@@ -38,6 +39,11 @@ export function usePedido(slug: string): PedidoLocal | null | undefined {
     leer,
     instantaneaServidor,
   );
+}
+
+export function useVista(slug: string): Vista | undefined {
+  const leer = useCallback(() => instantaneaVista(slug) ?? VISTA_INICIAL, [slug]);
+  return useSyncExternalStore<Vista | undefined>(suscribir, leer, instantaneaServidor);
 }
 
 /**

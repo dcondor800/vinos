@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { obtenerProducto } from "@/lib/catalogo";
 import { obtenerEvento } from "@/lib/eventos";
+import { imagenPermitida } from "@/lib/imagenes";
 import { formatearPrecio } from "@/lib/moneda";
 import { Encabezado } from "../../encabezado";
 import { SoloConEdad } from "../../solo-con-edad";
@@ -76,7 +77,7 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
         <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.bodega} />
 
         <div className="relative mt-4 h-56 overflow-hidden rounded-2xl bg-superficie-alta">
-          {vino.imagen_url ? (
+          {imagenPermitida(vino.imagen_url) ? (
             <Image
               src={vino.imagen_url}
               alt={vino.nombre}
