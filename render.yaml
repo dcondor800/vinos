@@ -16,7 +16,13 @@ services:
     plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    healthCheckPath: /
+    # Cada push a main despliega. Sin esto hay que lanzarlo a mano y la app
+    # publicada se queda atrás sin que nadie lo note.
+    autoDeploy: true
+    # No apunta a "/": esa ruta consulta Supabase, así que un problema de
+    # configuración o una caída de la base tumbaban el servicio entero con un
+    # 502, en vez de degradar solo esa pantalla.
+    healthCheckPath: /api/salud
     envVars:
       - key: NODE_VERSION
         value: 22.11.0
