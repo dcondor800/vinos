@@ -41,7 +41,7 @@ export function Entrada({ slug, eventoId }: { slug: string; eventoId: string }) 
         type="button"
         onClick={() => alConfirmar(null)}
         disabled={ocupado}
-        className="w-full rounded-full bg-marca px-6 py-4 text-base font-medium text-sobre-marca transition-opacity active:opacity-80 disabled:opacity-60"
+        className="boton boton-primario w-full text-base"
       >
         Tengo 18 años o más
       </button>

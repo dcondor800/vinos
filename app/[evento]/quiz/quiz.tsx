@@ -66,6 +66,8 @@ function Pasos({
 
   const [indice, setIndice] = useState(0);
   const [respuestas, setRespuestas] = useState<Respuestas>(inicial);
+  // La pregunta entra desde el lado hacia el que se movió el cuestionario.
+  const [direccion, setDireccion] = useState<"adelante" | "atras">("adelante");
   // Evita que un doble toque salte dos pasos mientras corre la pausa visual.
   const avanzando = useRef(false);
 
@@ -76,6 +78,7 @@ function Pasos({
 
   function avanzar(r: Respuestas) {
     if (!esUltima) {
+      setDireccion("adelante");
       setIndice(indice + 1);
       avanzando.current = false;
       return;
@@ -114,6 +117,7 @@ function Pasos({
 
   function retroceder() {
     avanzando.current = false;
+    setDireccion("atras");
     setIndice(indice - 1);
   }
 
@@ -123,52 +127,61 @@ function Pasos({
       : valorActual === o.valor;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <header>
-        <div className="flex items-center justify-between">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      {/* El atrás del quiz retrocede de pregunta mientras haya preguntas
+          detrás; en la primera sale del cuestionario. Por eso no usa el
+          Encabezado compartido: aquí "volver" significa otra cosa. */}
+      <header className="sticky top-0 z-10 -mx-6 bg-superficie/95 px-4 py-2 backdrop-blur">
+        <div className="flex items-center gap-2">
           {indice === 0 ? (
             <Link
               href={salida}
-              data-accion
-              className="-ml-2 flex items-center px-2 text-sm text-hueso-suave"
+              aria-label={etiquetaSalida}
+              className="boton boton-icono -ml-1 text-hueso-suave"
             >
-              ← {etiquetaSalida}
+              <Flecha />
             </Link>
           ) : (
             <button
               type="button"
               onClick={retroceder}
-              className="-ml-2 px-2 text-sm text-hueso-suave"
+              aria-label="Pregunta anterior"
+              className="boton boton-icono -ml-1 text-hueso-suave"
             >
-              ← Atrás
+              <Flecha />
             </button>
           )}
-          <span className="text-xs text-hueso-suave tabular-nums">
+
+          <span className="flex-1 text-center text-sm text-hueso-suave tabular-nums">
             {indice + 1} de {total}
           </span>
+
+          <span className="boton-icono" aria-hidden />
         </div>
 
-        <div className="mt-2 h-1 overflow-hidden rounded-full bg-borde">
+        <div className="mt-1 h-1 overflow-hidden rounded-full bg-borde">
+          {/* scaleX en vez de width: la anchura dispara layout en cada paso. */}
           <div
-            className="h-full rounded-full bg-marca transition-[width] duration-300 ease-out"
-            style={{ width: `${((indice + 1) / total) * 100}%` }}
+            className="h-full origin-left rounded-full bg-marca transition-transform duration-300 ease-out"
+            style={{ transform: `scaleX(${(indice + 1) / total})` }}
           />
         </div>
       </header>
 
-      <h1 className="mt-9 text-3xl leading-tight font-medium tracking-tight text-balance">
-        {pregunta.titulo}
-      </h1>
-      {pregunta.pista && <p className="mt-2 text-sm text-hueso-suave">{pregunta.pista}</p>}
+      <div key={indice} data-paso={direccion} className="flex flex-1 flex-col">
+        <h1 className="mt-8 text-3xl leading-tight font-medium tracking-tight text-balance">
+          {pregunta.titulo}
+        </h1>
+        {pregunta.pista && <p className="mt-2 text-sm text-hueso-suave">{pregunta.pista}</p>}
 
-      <div className="mt-7 flex flex-col gap-2.5">
+        <div className="mt-7 flex flex-col gap-2.5">
         {pregunta.opciones.map((o) => (
           <button
             key={String(o.valor)}
             type="button"
             aria-pressed={pregunta.multiple ? seleccionada(o) : undefined}
             onClick={() => (pregunta.multiple ? alternar(o.valor) : elegirUnica(o.valor))}
-            className={`flex items-center justify-between rounded-2xl border px-5 py-4 text-left text-base transition-colors ${
+            className={`boton justify-between rounded-2xl border px-5 py-4 text-left text-base ${
               seleccionada(o)
                 ? "border-marca-borde bg-marca-suave"
                 : "border-borde bg-superficie-alta active:bg-borde"
@@ -189,18 +202,33 @@ function Pasos({
         ))}
       </div>
 
-      {/* Las de selección múltiple no avanzan solas: hace falta confirmar. */}
-      {pregunta.multiple && (
-        <div className="sticky bottom-0 -mx-6 mt-auto bg-superficie px-6 pt-6 pb-2">
-          <button
-            type="button"
-            onClick={() => avanzar(respuestas)}
-            className="w-full rounded-full bg-marca px-6 py-4 text-base font-medium text-sobre-marca transition-opacity active:opacity-80"
-          >
-            {esUltima ? "Ver mis vinos" : "Continuar"}
-          </button>
-        </div>
-      )}
+        {/* Las de selección múltiple no avanzan solas: hace falta confirmar. */}
+        {pregunta.multiple && (
+          <div className="sticky bottom-0 -mx-6 mt-auto bg-superficie px-6 pt-6 pb-2">
+            <button
+              type="button"
+              onClick={() => avanzar(respuestas)}
+              className="boton boton-primario w-full text-base"
+            >
+              {esUltima ? "Ver mis vinos" : "Continuar"}
+            </button>
+          </div>
+        )}
+      </div>
     </main>
+  );
+}
+
+function Flecha() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M12.5 16 6.5 10l6-6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

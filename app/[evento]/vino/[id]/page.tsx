@@ -1,9 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { obtenerProducto } from "@/lib/catalogo";
 import { obtenerEvento } from "@/lib/eventos";
 import { formatearPrecio } from "@/lib/moneda";
+import { Encabezado } from "../../encabezado";
 import { SoloConEdad } from "../../solo-con-edad";
 import { AgregarAlPedido } from "./agregar";
 
@@ -70,14 +70,10 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
 
   return (
     <SoloConEdad slug={slug}>
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pt-5">
-        <Link
-          href={`/${slug}/resultados`}
-          data-accion
-          className="-ml-2 flex w-fit items-center px-2 text-sm text-hueso-suave"
-        >
-          ← Volver
-        </Link>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6">
+        {/* volverA es solo el respaldo de quien abre la ficha en pestaña nueva:
+            normalmente se retrocede al paso real, que puede ser el pedido. */}
+        <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.bodega} />
 
         <div className="relative mt-4 h-56 overflow-hidden rounded-2xl bg-superficie-alta">
           {vino.imagen_url ? (

@@ -13,6 +13,7 @@ import {
   type LineaConfirmada,
 } from "@/lib/pedido";
 import { useExigeEdad, usePedido, useSincronizacion } from "@/lib/usar-sesion";
+import { Encabezado } from "../encabezado";
 
 interface LineaVista {
   producto: ProductoCatalogo;
@@ -97,16 +98,10 @@ export function Pedido({
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pt-5">
-      <Link
-        href={`/${slug}/resultados`}
-        data-accion
-        className="-ml-2 flex w-fit items-center px-2 text-sm text-hueso-suave"
-      >
-        ← Seguir viendo vinos
-      </Link>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6">
+      <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo="Mi pedido" />
 
-      <h1 className="mt-4 text-2xl font-medium tracking-tight">Mi pedido</h1>
+      <h1 className="mt-5 text-2xl font-medium tracking-tight">Mi pedido</h1>
 
       {vacio ? (
         <div className="mt-8">

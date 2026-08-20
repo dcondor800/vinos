@@ -34,6 +34,14 @@
   --font-serif: var(--fuente-etiqueta);
 }
 
+/**
+ * Las curvas del navegador son demasiado suaves para que un toque se sienta
+ * contestado. Estas tienen más carácter sin llamar la atención.
+ */
+:root {
+  --salida: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 html {
   background: var(--superficie);
   /* El fondo oscuro también en la barra de estado y el rebote de scroll de iOS. */
@@ -61,11 +69,100 @@ a[data-accion] {
   outline-offset: 2px;
 }
 
+/**
+ * En @layer components para que las utilidades de Tailwind sigan ganando: una
+ * clase suelta fuera de capa le gana a px-6 y produce colisiones difíciles de
+ * ver.
+ */
+@layer components {
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    border-radius: 9999px;
+    /* Nunca `all`: solo lo que de verdad cambia. */
+    transition:
+      transform 160ms var(--salida),
+      background-color 160ms ease,
+      border-color 160ms ease,
+      opacity 160ms ease;
+  }
+
+  /* El toque tiene que verse contestado en el momento. */
+  .boton:active {
+    transform: scale(0.97);
+  }
+
+  .boton:disabled,
+  .boton[aria-disabled="true"] {
+    opacity: 0.45;
+  }
+
+  .boton:disabled:active {
+    transform: none;
+  }
+
+  .boton-primario {
+    background: var(--marca);
+    color: var(--sobre-marca);
+    font-weight: 500;
+    padding: 0.9rem 1.5rem;
+  }
+
+  .boton-secundario {
+    border: 1px solid var(--borde);
+    color: var(--hueso);
+    padding: 0.75rem 1.25rem;
+  }
+
+  .boton-secundario:active {
+    background: var(--borde);
+  }
+
+  /* Objetivo táctil cuadrado para iconos: 44px reales, no un glifo suelto. */
+  .boton-icono {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+/**
+ * Cambio de pregunta en el quiz. La dirección acompaña al gesto: avanzar entra
+ * desde la derecha, retroceder desde la izquierda.
+ */
+@keyframes entrar-adelante {
+  from { opacity: 0; transform: translateX(12px); }
+}
+
+@keyframes entrar-atras {
+  from { opacity: 0; transform: translateX(-12px); }
+}
+
+[data-paso] {
+  animation: entrar-adelante 220ms var(--salida) both;
+}
+
+[data-paso="atras"] {
+  animation-name: entrar-atras;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Movimiento fuera; el cambio de opacidad ayuda a entender y se queda. */
+  [data-paso] {
+    animation: none;
+  }
+
+  .boton:active {
+    transform: none;
   }
 }

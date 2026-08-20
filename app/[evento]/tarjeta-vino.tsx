@@ -25,8 +25,7 @@ export function TarjetaVino({
   return (
     <Link
       href={`/${slug}/vino/${producto.id}`}
-      data-accion
-      className="flex gap-4 rounded-2xl border border-borde bg-superficie-alta p-3 transition-colors active:bg-borde"
+      className="boton w-full justify-start gap-4 rounded-2xl border border-borde bg-superficie-alta p-3 text-left active:bg-borde"
     >
       <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-superficie">
         {producto.imagen_url ? (

@@ -26,8 +26,7 @@ export default async function Raiz() {
           <>
             <Link
               href={`/${unico.slug}`}
-              data-accion
-              className="flex w-full items-center justify-center rounded-full bg-marca px-6 py-4 text-base font-medium text-sobre-marca transition-opacity active:opacity-80"
+              className="boton boton-primario w-full text-base"
             >
               Empezar
             </Link>
@@ -41,8 +40,7 @@ export default async function Raiz() {
                 <li key={e.id}>
                   <Link
                     href={`/${e.slug}`}
-                    data-accion
-                    className="flex items-center justify-between rounded-2xl border border-borde bg-superficie-alta px-5 py-4 transition-colors active:bg-borde"
+                    className="boton w-full justify-between rounded-2xl border border-borde bg-superficie-alta px-5 py-4 active:bg-borde"
                   >
                     <span className="font-serif text-lg">{e.nombre}</span>
                     <span aria-hidden className="text-hueso-suave">

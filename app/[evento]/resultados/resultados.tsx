@@ -7,7 +7,7 @@ import { simboloMoneda } from "@/lib/moneda";
 import { describirPerfil } from "@/lib/recomendacion";
 import { seleccionarSugerencias } from "@/lib/sugerencias";
 import { useExigeEdad, usePerfil, useSincronizacion } from "@/lib/usar-sesion";
-import { BarraPedido } from "../barra-pedido";
+import { Encabezado } from "../encabezado";
 import { TarjetaVino } from "../tarjeta-vino";
 
 export function Resultados({
@@ -43,8 +43,10 @@ export function Resultados({
   const sugiriendo = calculo !== null && !verTodo;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pt-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
-      <header className="border-b border-borde pb-5">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <Encabezado slug={slug} volverA={`/${slug}`} titulo={sugiriendo ? "Sugerencias" : "Catálogo"} />
+
+      <header className="border-b border-borde pt-5 pb-5">
         <h1 className="text-2xl font-medium tracking-tight">
           {sugiriendo ? "Para ti" : "Catálogo completo"}
         </h1>
@@ -56,11 +58,7 @@ export function Resultados({
             <p className="text-sm text-hueso-suave">
               {describirPerfil(perfil.perfil, simboloMoneda(moneda))}
             </p>
-            <Link
-              href={`/${slug}/quiz`}
-              data-accion
-              className="flex shrink-0 items-center rounded-full border border-borde px-4 text-sm transition-colors active:bg-borde"
-            >
+            <Link href={`/${slug}/quiz`} className="boton boton-secundario shrink-0 py-1.5 text-sm">
               Cambiar
             </Link>
           </div>
@@ -109,11 +107,7 @@ export function Resultados({
            así que mandar ahí devolvería a esta misma lista. El quiz arranca en
            la pregunta 1 con las respuestas anteriores ya marcadas. */
         <div className="mt-8 flex flex-col gap-3 border-t border-borde pt-6">
-          <Link
-            href={`/${slug}/quiz`}
-            data-accion
-            className="flex w-full items-center justify-center rounded-full border border-borde px-6 py-3.5 text-sm transition-colors active:bg-borde"
-          >
+          <Link href={`/${slug}/quiz`} className="boton boton-secundario w-full text-sm">
             {perfil ? "Volver al inicio" : "Responder el quiz"}
           </Link>
 
@@ -128,8 +122,6 @@ export function Resultados({
           )}
         </div>
       )}
-
-      <BarraPedido slug={slug} />
     </main>
   );
 }
