@@ -66,6 +66,7 @@ body {
 /* Área táctil mínima de 44px en todo lo interactivo. */
 button,
 [role="button"],
+select,
 a[data-accion] {
   min-height: 44px;
 }

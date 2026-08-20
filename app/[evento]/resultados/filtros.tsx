@@ -17,6 +17,13 @@ const TIPOS: { valor: TipoVino; etiqueta: string }[] = [
  *
  * El campo va arriba del todo y la lista debajo, para que el teclado del
  * teléfono no tape lo que se está filtrando.
+ *
+ * Los dos filtros se muestran distinto a propósito. El tipo va en chips a la
+ * vista porque es el que casi todo el mundo usa y se reconoce sin leer. La zona
+ * va en un desplegable del sistema porque son ocho en esta feria y podrían ser
+ * veinte en otra: en chips ocuparía media pantalla. Ninguno de los dos se
+ * desplaza en horizontal, que escondía opciones sin avisar y peleaba con el
+ * desplazamiento de la lista.
  */
 export function Filtros({
   slug,
@@ -33,32 +40,69 @@ export function Filtros({
 
   return (
     <div className="mt-4 flex flex-col gap-3">
-      <div className="relative">
-        <input
-          type="search"
-          inputMode="search"
-          value={vista.busqueda}
-          onChange={(e) => guardarVista(slug, { busqueda: e.target.value })}
-          placeholder="Buscar vino, bodega o cepa"
-          aria-label="Buscar vino, bodega o cepa"
-          className="w-full rounded-full border border-borde bg-superficie-alta px-5 py-3 text-base outline-none placeholder:text-hueso-suave focus:border-marca-borde"
-        />
-      </div>
-
-      <Fila
-        etiqueta="Tipo"
-        opciones={TIPOS}
-        activo={vista.tipo}
-        alElegir={(v) => guardarVista(slug, { tipo: v as TipoVino | null })}
+      <input
+        type="search"
+        inputMode="search"
+        value={vista.busqueda}
+        onChange={(e) => guardarVista(slug, { busqueda: e.target.value })}
+        placeholder="Buscar vino, bodega o cepa"
+        aria-label="Buscar vino, bodega o cepa"
+        className="w-full rounded-full border border-borde bg-superficie-alta px-5 py-3 text-base outline-none placeholder:text-hueso-suave focus:border-marca-borde"
       />
 
+      <div role="group" aria-label="Tipo de vino" className="flex flex-wrap gap-2">
+        {TIPOS.map((t) => {
+          const activo = vista.tipo === t.valor;
+
+          return (
+            <button
+              key={t.valor}
+              type="button"
+              aria-pressed={activo}
+              // Volver a tocar el chip activo lo quita: no hace falta un "todos".
+              onClick={() => guardarVista(slug, { tipo: activo ? null : t.valor })}
+              className={`boton rounded-full border px-4 py-1.5 text-sm ${
+                activo ? "border-marca-borde bg-marca-suave" : "border-borde text-hueso-suave"
+              }`}
+            >
+              {activo && (
+                <span aria-hidden className="-ml-1">
+                  ✓
+                </span>
+              )}
+              {t.etiqueta}
+            </button>
+          );
+        })}
+      </div>
+
       {zonas.length > 1 && (
-        <Fila
-          etiqueta="Zona"
-          opciones={zonas.map((z) => ({ valor: z, etiqueta: z }))}
-          activo={vista.zona}
-          alElegir={(v) => guardarVista(slug, { zona: v })}
-        />
+        <div className="relative">
+          <select
+            value={vista.zona ?? ""}
+            onChange={(e) => guardarVista(slug, { zona: e.target.value || null })}
+            aria-label="Zona del salón"
+            className={`w-full appearance-none rounded-full border py-3 pr-11 pl-5 text-base outline-none ${
+              vista.zona
+                ? "border-marca-borde bg-marca-suave text-hueso"
+                : "border-borde bg-superficie-alta text-hueso-suave"
+            }`}
+          >
+            <option value="">Todas las zonas</option>
+            {zonas.map((z) => (
+              <option key={z} value={z}>
+                {z}
+              </option>
+            ))}
+          </select>
+
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-hueso-suave"
+          >
+            ▾
+          </span>
+        </div>
       )}
 
       <p className="text-sm text-hueso-suave">
@@ -68,64 +112,13 @@ export function Filtros({
         {hayFiltro && (
           <button
             type="button"
-            onClick={() =>
-              guardarVista(slug, { busqueda: "", tipo: null, zona: null })
-            }
+            onClick={() => guardarVista(slug, { busqueda: "", tipo: null, zona: null })}
             className="ml-3 underline underline-offset-4"
           >
             Quitar filtros
           </button>
         )}
       </p>
-    </div>
-  );
-}
-
-function Fila({
-  etiqueta,
-  opciones,
-  activo,
-  alElegir,
-}: {
-  etiqueta: string;
-  opciones: { valor: string; etiqueta: string }[];
-  activo: string | null;
-  alElegir: (valor: string | null) => void;
-}) {
-  return (
-    /* Se desplaza en horizontal en vez de partirse en varias líneas: la lista
-       de vinos tiene que seguir viéndose sin bajar. */
-    <div
-      role="group"
-      aria-label={etiqueta}
-      className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1"
-    >
-      {opciones.map((o) => {
-        const seleccionado = activo === o.valor;
-
-        return (
-          <button
-            key={o.valor}
-            type="button"
-            aria-pressed={seleccionado}
-            /* Volver a tocar el chip activo lo quita: no hace falta un botón
-               "todos" aparte. */
-            onClick={() => alElegir(seleccionado ? null : o.valor)}
-            className={`boton shrink-0 rounded-full border px-4 py-1.5 text-sm ${
-              seleccionado
-                ? "border-marca-borde bg-marca-suave"
-                : "border-borde text-hueso-suave"
-            }`}
-          >
-            {seleccionado && (
-              <span aria-hidden className="-ml-1">
-                ✓
-              </span>
-            )}
-            {o.etiqueta}
-          </button>
-        );
-      })}
     </div>
   );
 }
