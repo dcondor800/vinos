@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { plantillaCsv, type Validacion } from "@/lib/importacion";
 import { importarCatalogo, revisarCsv, verificarClave, type ResumenImportacion } from "./acciones";
+import { Fotos } from "./fotos";
 
 const CLAVE_SESION = "vinos:clave-importador";
 
@@ -58,6 +59,7 @@ function Carga({ slug, evento, clave }: { slug: string; evento: string; clave: s
   const [resumen, setResumen] = useState<ResumenImportacion | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [fotosSubidas, setFotosSubidas] = useState(0);
 
   const listo = validacion !== null && validacion.problemas.length === 0 && validacion.faltantes.length === 0 && validacion.filas.length > 0;
 
@@ -153,6 +155,13 @@ function Carga({ slug, evento, clave }: { slug: string; evento: string; clave: s
           <ul className="mt-1 text-sm text-hueso-suave">
             <li>{resumen.productosCreados} vinos nuevos</li>
             <li>{resumen.productosActualizados} vinos actualizados</li>
+            <li>{resumen.fotosAsignadas} fotos asignadas</li>
+            {resumen.fotosDeclaradasSinSubir.length > 0 && (
+              <li className="text-error">
+                {resumen.fotosDeclaradasSinSubir.length} fotos declaradas que no estaban subidas:{" "}
+                {resumen.fotosDeclaradasSinSubir.slice(0, 5).join(", ")}
+              </li>
+            )}
             <li>
               {resumen.bodegasNuevas} bodegas y {resumen.standsNuevos} stands creados
             </li>
@@ -172,6 +181,15 @@ function Carga({ slug, evento, clave }: { slug: string; evento: string; clave: s
 
       {validacion && <Previsualizacion validacion={validacion} />}
 
+      {/* Las fotos se suben antes de escribir el catálogo: al confirmar, el
+          importador resuelve cada imagen_url contra lo que ya está subido. */}
+      <Fotos
+        slug={slug}
+        clave={clave}
+        validacion={listo ? validacion : null}
+        onSubido={() => setFotosSubidas((n) => n + 1)}
+      />
+
       {listo && (
         <button
           type="button"
@@ -182,6 +200,7 @@ function Carga({ slug, evento, clave }: { slug: string; evento: string; clave: s
           {ocupado
             ? "Cargando…"
             : `Cargar ${validacion.filas.length} vinos en ${evento}`}
+          {fotosSubidas > 0 && !ocupado ? " (con sus fotos)" : ""}
         </button>
       )}
     </div>

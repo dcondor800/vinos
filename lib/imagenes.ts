@@ -19,6 +19,34 @@ function hostPermitido(): string | null {
   }
 }
 
+export const BUCKET_CATALOGO = 'catalogo';
+
+/**
+ * Nombre de archivo convertido en clave de almacenamiento. La bodega puede
+ * mandar "Reserva Cabernet Añejo.JPG" y hay que guardarlo con un nombre que
+ * viaje bien en una URL. La conversión tiene que ser la misma al subir y al
+ * resolver, o el vino se queda sin foto.
+ */
+export function claveDeFoto(slug: string, nombreArchivo: string): string {
+  const limpio = nombreArchivo
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9.]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return `${slug}/${limpio}`;
+}
+
+/** URL pública de una foto ya subida. Se deriva, no se recibe del cliente. */
+export function urlPublicaDeFoto(slug: string, nombreArchivo: string): string | null {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+
+  return `${base}/storage/v1/object/public/${BUCKET_CATALOGO}/${claveDeFoto(slug, nombreArchivo)}`;
+}
+
 export function imagenPermitida(src: string | null | undefined): src is string {
   if (!src) return false;
 

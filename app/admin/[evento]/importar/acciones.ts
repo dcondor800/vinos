@@ -7,6 +7,11 @@
  */
 
 import { randomUUID, timingSafeEqual } from 'node:crypto';
+import {
+  BUCKET_CATALOGO,
+  claveDeFoto,
+  urlPublicaDeFoto,
+} from '@/lib/imagenes';
 import { validarCsv, type FilaProducto, type Validacion } from '@/lib/importacion';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { claveImportador } from '@/lib/supabase/env';
@@ -16,6 +21,8 @@ export interface ResumenImportacion {
   standsNuevos: number;
   productosCreados: number;
   productosActualizados: number;
+  fotosAsignadas: number;
+  fotosDeclaradasSinSubir: string[];
 }
 
 export type Respuesta =
@@ -47,6 +54,57 @@ export async function revisarCsv(clave: string, texto: string): Promise<Validaci
 const norm = (s: string) => s.trim().toLowerCase();
 
 type Admin = ReturnType<typeof createAdminClient>;
+
+export interface FirmaSubida {
+  nombre: string;
+  ruta: string;
+  token: string;
+}
+
+/**
+ * Permisos de subida de un solo uso, uno por foto.
+ *
+ * Las imágenes no pasan por el servidor de la app: el navegador las manda
+ * directo a Supabase. Con 106 vinos son decenas de megas, y una acción de
+ * servidor tiene un límite de cuerpo de 1 MB. Además así una subida lenta no
+ * bloquea un proceso del servidor.
+ *
+ * Lo que sí controla el servidor es quién puede subir —la clave se comprueba
+ * aquí— y con qué nombre queda guardado cada archivo.
+ */
+export async function firmarSubidas(
+  claveDada: string,
+  slug: string,
+  nombres: string[],
+): Promise<FirmaSubida[] | null> {
+  if (!claveCorrecta(claveDada)) return null;
+
+  const admin = createAdminClient();
+  const firmas: FirmaSubida[] = [];
+
+  for (const nombre of nombres) {
+    const ruta = claveDeFoto(slug, nombre);
+    // upsert: volver a mandar una foto corregida reemplaza la anterior.
+    const { data, error } = await admin.storage
+      .from(BUCKET_CATALOGO)
+      .createSignedUploadUrl(ruta, { upsert: true });
+
+    if (error || !data) continue;
+    firmas.push({ nombre, ruta, token: data.token });
+  }
+
+  return firmas;
+}
+
+/** Fotos ya presentes en el almacenamiento de esta feria. */
+async function fotosSubidas(admin: Admin, slug: string): Promise<Set<string>> {
+  const { data, error } = await admin.storage
+    .from(BUCKET_CATALOGO)
+    .list(slug, { limit: 1000 });
+
+  if (error || !data) return new Set();
+  return new Set(data.map((f) => `${slug}/${f.name}`));
+}
 
 export async function importarCatalogo(
   claveDada: string,
@@ -86,9 +144,11 @@ export async function importarCatalogo(
     const resumen = await escribirProductos(
       admin,
       evento.id,
+      slug,
       validacion.filas,
       mapaBodega,
       mapaStand,
+      await fotosSubidas(admin, slug),
     );
 
     return { ok: true, resumen: { bodegasNuevas, standsNuevos, ...resumen } };
@@ -167,9 +227,11 @@ async function asegurarStands(
 async function escribirProductos(
   admin: Admin,
   eventoId: string,
+  slug: string,
   filas: FilaProducto[],
   mapaBodega: Map<string, string>,
   mapaStand: Map<string, string>,
+  fotos: Set<string>,
 ) {
   const { data, error } = await admin
     .from('productos')
@@ -185,6 +247,8 @@ async function escribirProductos(
 
   let productosCreados = 0;
   let productosActualizados = 0;
+  let fotosAsignadas = 0;
+  const fotosDeclaradasSinSubir: string[] = [];
 
   const registros = filas.map((f) => {
     const expositorId = mapaBodega.get(norm(f.bodega))!;
@@ -213,7 +277,7 @@ async function escribirProductos(
       notas: f.notas,
       maridajes: f.maridajes,
       descripcion: f.descripcion,
-      imagen_url: f.imagen_url,
+      imagen_url: resolverFoto(f),
       disponible: f.disponible,
       destacado: f.destacado,
     };
@@ -223,5 +287,24 @@ async function escribirProductos(
   const { error: errorUpsert } = await admin.from('productos').upsert(registros);
   if (errorUpsert) throw new Error(`productos: ${errorUpsert.message}`);
 
-  return { productosCreados, productosActualizados };
+  return { productosCreados, productosActualizados, fotosAsignadas, fotosDeclaradasSinSubir };
+
+  /**
+   * La URL sale del nombre declarado en la fila, no de nada que mande el
+   * navegador, y solo si el archivo existe de verdad en el almacenamiento. Una
+   * foto declarada que no llegó a subirse deja el vino sin imagen y se reporta,
+   * en vez de guardar un enlace roto.
+   */
+  function resolverFoto(f: FilaProducto): string | null {
+    if (!f.foto) return f.imagen_url;
+
+    if (!fotos.has(claveDeFoto(slug, f.foto))) {
+      fotosDeclaradasSinSubir.push(f.foto);
+      return f.imagen_url;
+    }
+
+    const url = urlPublicaDeFoto(slug, f.foto);
+    if (url) fotosAsignadas++;
+    return url ?? f.imagen_url;
+  }
 }
