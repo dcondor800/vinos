@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { confirmarEdad, rutaSiguiente } from "@/lib/sesion";
 import { useSesion, useSincronizacion } from "@/lib/usar-sesion";
@@ -10,30 +11,43 @@ export function Entrada({ slug, eventoId }: { slug: string; eventoId: string }) 
   const sesion = useSesion(slug);
   const [ocupado, setOcupado] = useState(false);
 
-  // Adónde ir tras confirmar. Null = a donde toque según el perfil.
-  const destino = useRef<string | null>(null);
-
   useSincronizacion(slug);
 
   const dentro = sesion?.edadConfirmada === true;
 
-  // Quien ya pasó el gate no vuelve a ver esta pantalla: va al quiz, o a sus
-  // resultados si ya lo respondió.
-  useEffect(() => {
-    if (sesion && dentro) router.replace(destino.current ?? rutaSiguiente(slug, sesion));
-  }, [router, slug, sesion, dentro]);
-
+  /**
+   * Se navega al confirmar, que es una acción del usuario. Antes esto era un
+   * efecto atado a "hay sesión", y entonces volver a esta pantalla desde
+   * resultados la mostraba un instante y rebotaba de vuelta. Una pantalla a la
+   * que no se puede volver rompe el botón de atrás.
+   */
   async function alConfirmar(ruta: string | null) {
-    destino.current = ruta;
     setOcupado(true);
     // No espera a la red: confirmarEdad resuelve con la sesión ya en local.
-    await confirmarEdad(slug, eventoId);
+    const s = await confirmarEdad(slug, eventoId);
+    router.push(ruta ?? rutaSiguiente(slug, s));
   }
 
   // undefined es "todavía no se sabe" (servidor e hidratación). Se reserva el
   // alto de los controles para no parpadear el gate a quien ya lo pasó ni
   // saltar el layout: recargar no vuelve a pedir la edad.
-  if (sesion === undefined || dentro) return <div className="h-[150px]" aria-hidden />;
+  if (sesion === undefined) return <div className="h-[150px]" aria-hidden />;
+
+  if (dentro && sesion) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Link href={rutaSiguiente(slug, sesion)} className="boton boton-primario w-full text-base">
+          {sesion.perfilId ? "Volver a mis sugerencias" : "Descubrir mi vino"}
+        </Link>
+        <Link
+          href={`/${slug}/resultados`}
+          className="boton w-full px-6 py-2 text-sm text-hueso-suave underline underline-offset-4"
+        >
+          Ver el catálogo completo
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -52,7 +66,7 @@ export function Entrada({ slug, eventoId }: { slug: string; eventoId: string }) 
         type="button"
         onClick={() => alConfirmar(`/${slug}/resultados`)}
         disabled={ocupado}
-        className="w-full px-6 py-2 text-sm text-hueso-suave underline underline-offset-4 disabled:opacity-60"
+        className="boton w-full px-6 py-2 text-sm text-hueso-suave underline underline-offset-4"
       >
         Ver el catálogo completo
       </button>
