@@ -108,8 +108,7 @@ export function Pedido({
           <p className="text-hueso-suave">Todavía no has agregado ninguna botella.</p>
           <Link
             href={`/${slug}/resultados`}
-            data-accion
-            className="mt-5 flex w-full items-center justify-center rounded-full bg-marca px-6 py-4 text-base font-medium text-sobre-marca"
+            className="boton boton-primario mt-5 w-full text-base"
           >
             Ver mis sugerencias
           </Link>
@@ -117,10 +116,21 @@ export function Pedido({
       ) : (
         <>
           <p className="mt-1 text-sm text-hueso-suave">
-            {grupos.length === 1
-              ? "Todo está en un solo stand."
-              : `Tus botellas están en ${grupos.length} stands. Se paga en cada uno.`}
+            {cerrado
+              ? "Ve a cada stand y muéstrale su sección de esta lista."
+              : grupos.length === 1
+                ? "Todo está en un solo stand."
+                : `Tus botellas están en ${grupos.length} stands. Se paga en cada uno.`}
           </p>
+
+          {cerrado && (
+            <Referencia
+              slug={slug}
+              codigo={pedido.codigo!}
+              sincronizado={pedido.sincronizado}
+              grupos={grupos}
+            />
+          )}
 
           <div className="mt-6 flex flex-col gap-5">
             {grupos.map((g) => (
@@ -201,31 +211,33 @@ export function Pedido({
             Precios referenciales. El pago se realiza en cada stand.
           </p>
 
-          <div className="sticky bottom-0 -mx-6 mt-8 border-t border-borde bg-superficie px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            {cerrado ? (
-              <Codigo
-                slug={slug}
-                codigo={pedido.codigo!}
-                sincronizado={pedido.sincronizado}
-                grupos={grupos}
-              />
-            ) : (
+          {/* Una vez confirmado no queda nada que tocar: la pantalla pasa a ser
+              la lista con la que se camina, y la barra fija estorbaría. */}
+          {!cerrado && (
+            <div className="sticky bottom-0 -mx-6 mt-8 border-t border-borde bg-superficie px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
                 onClick={alConfirmar}
-                className="w-full rounded-full bg-marca px-6 py-4 text-base font-medium text-sobre-marca transition-opacity active:opacity-80"
+                className="boton boton-primario w-full text-base"
               >
-                Generar código de recojo
+                Confirmar mi pedido
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
     </main>
   );
 }
 
-function Codigo({
+/**
+ * El código no es lo que resuelve la compra: en el stand lo que funciona es
+ * enseñar la sección de esa bodega, con sus vinos y cantidades. Mientras no
+ * exista el panel de bodega, el personal no tiene dónde buscarlo, así que darle
+ * protagonismo prometería una interacción que no existe. Queda como referencia
+ * para reclamos y para cruzar la venta después.
+ */
+function Referencia({
   slug,
   codigo,
   sincronizado,
@@ -251,30 +263,30 @@ function Codigo({
   }
 
   return (
-    <div className="text-center">
-      <p className="text-xs tracking-wide text-hueso-suave uppercase">Tu código de recojo</p>
-      <p className="mt-1 font-serif text-5xl tracking-[0.15em] tabular-nums">{codigo}</p>
-      <p className="mt-2 text-sm text-hueso-suave text-balance">
-        Muéstralo en cada stand junto con las botellas de esa sección.
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-borde px-4 py-3">
+      <p className="text-sm text-hueso-suave">
+        Referencia{" "}
+        <span className="font-medium tracking-wider text-hueso tabular-nums">{codigo}</span>
       </p>
-
-      {!sincronizado && (
-        <button
-          type="button"
-          onClick={reintentar}
-          className="mt-2 text-xs text-hueso-suave underline underline-offset-4"
-        >
-          Sin conexión — tu código funciona igual. Reintentar el guardado.
-        </button>
-      )}
 
       <button
         type="button"
         onClick={() => reabrirPedido(slug)}
-        className="mt-3 text-sm text-hueso-suave underline underline-offset-4"
+        className="text-sm text-hueso-suave underline underline-offset-4"
       >
         Modificar el pedido
       </button>
+
+      {/* El pedido vale igual sin red: lo que falta es la copia en el servidor. */}
+      {!sincronizado && (
+        <button
+          type="button"
+          onClick={reintentar}
+          className="basis-full text-left text-xs text-hueso-suave underline underline-offset-4"
+        >
+          Sin conexión — tu lista sigue aquí. Reintentar el guardado.
+        </button>
+      )}
     </div>
   );
 }
