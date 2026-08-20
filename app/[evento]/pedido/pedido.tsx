@@ -161,7 +161,8 @@ export function Pedido({
                       <div className="min-w-0 flex-1">
                         <Link
                           href={`/${slug}/vino/${l.producto.id}`}
-                          className="block font-serif leading-snug"
+                          data-accion
+                          className="flex items-center font-serif leading-snug"
                         >
                           {l.producto.nombre}
                         </Link>

@@ -74,7 +74,7 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6">
         {/* volverA es solo el respaldo de quien abre la ficha en pestaña nueva:
             normalmente se retrocede al paso real, que puede ser el pedido. */}
-        <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.bodega} />
+        <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.nombre} />
 
         <div className="relative mt-4 h-56 overflow-hidden rounded-2xl bg-superficie-alta">
           {imagenPermitida(vino.imagen_url) ? (

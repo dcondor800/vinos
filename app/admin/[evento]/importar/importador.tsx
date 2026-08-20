@@ -38,7 +38,7 @@ export function Importador({ slug, evento }: { slug: string; evento: string }) {
           autoComplete="off"
           className="rounded-xl border border-borde bg-superficie-alta px-4 py-3 outline-none focus:border-marca-borde"
         />
-        {error && <p className="text-sm text-marca">{error}</p>}
+        {error && <p className="text-sm text-error">{error}</p>}
         <button
           type="submit"
           className="mt-1 rounded-full bg-marca px-6 py-3.5 font-medium text-sobre-marca"
@@ -167,7 +167,7 @@ function Carga({ slug, evento, clave }: { slug: string; evento: string; clave: s
       )}
 
       {error && (
-        <p className="mt-6 rounded-xl border border-borde px-4 py-3 text-sm text-marca">{error}</p>
+        <p className="mt-6 rounded-xl border border-borde px-4 py-3 text-sm text-error">{error}</p>
       )}
 
       {validacion && <Previsualizacion validacion={validacion} />}
@@ -195,7 +195,7 @@ function Previsualizacion({ validacion }: { validacion: Validacion }) {
     return (
       <p className="mt-6 rounded-xl border border-borde px-4 py-3 text-sm">
         Al archivo le faltan columnas obligatorias:{" "}
-        <span className="text-marca">{faltantes.join(", ")}</span>
+        <span className="text-error">{faltantes.join(", ")}</span>
       </p>
     );
   }
@@ -251,7 +251,7 @@ function Previsualizacion({ validacion }: { validacion: Validacion }) {
                   <td className="px-3 py-2 tabular-nums">{f.precio}</td>
                   <td className="px-3 py-2 text-hueso-suave">
                     {f.cuerpo == null && f.dulzor == null ? (
-                      <span className="text-marca">falta</span>
+                      <span className="text-error">falta</span>
                     ) : (
                       `${f.cuerpo ?? "–"}/${f.dulzor ?? "–"}`
                     )}

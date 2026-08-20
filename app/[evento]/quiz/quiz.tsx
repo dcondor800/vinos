@@ -86,6 +86,13 @@ function Pasos({
   const [respuestas, setRespuestas] = useState<Respuestas>(inicial);
   // Evita que un doble toque salte dos pasos mientras corre la pausa visual.
   const avanzando = useRef(false);
+  const temporizador = useRef<number | undefined>(undefined);
+
+  /**
+   * Sin esto, tocar la última opción y salir del quiz antes de los 160 ms de la
+   * pausa visual llevaba igual a resultados, ya con la pantalla abandonada.
+   */
+  useEffect(() => () => window.clearTimeout(temporizador.current), []);
 
   /**
    * Cada pregunta deja una entrada en el historial, así el gesto de retroceso
@@ -134,7 +141,7 @@ function Pasos({
     const siguientes = { ...respuestas, [pregunta.clave]: valor } as Respuestas;
     setRespuestas(siguientes);
     // Pausa corta: la selección se ve antes de que cambie la pantalla.
-    window.setTimeout(() => avanzar(siguientes), 160);
+    temporizador.current = window.setTimeout(() => avanzar(siguientes), 160);
   }
 
   function alternar(valor: Opcion["valor"]) {
@@ -227,16 +234,16 @@ function Pasos({
             }`}
           >
             {o.etiqueta}
-            {pregunta.multiple && (
-              <span
-                aria-hidden
-                className={`ml-3 grid size-5 shrink-0 place-items-center rounded-full border text-[11px] ${
-                  seleccionada(o) ? "border-marca bg-marca text-sobre-marca" : "border-borde"
-                }`}
-              >
-                {seleccionada(o) ? "✓" : ""}
-              </span>
-            )}
+            {/* También en las de opción única: al retroceder a una pregunta
+                ya contestada, el color por sí solo no dice cuál se eligió. */}
+            <span
+              aria-hidden
+              className={`ml-3 grid size-5 shrink-0 place-items-center rounded-full border text-[11px] ${
+                seleccionada(o) ? "border-marca bg-marca text-sobre-marca" : "border-borde"
+              }`}
+            >
+              {seleccionada(o) ? "✓" : ""}
+            </span>
           </button>
         ))}
       </div>

@@ -12,6 +12,11 @@
   --borde: #332b3a;
   --hueso: #ede7e0;
   --hueso-suave: #a49aa0;
+  /* Rojo de aviso. Fijo y no derivado de la marca del evento: el color del
+     cliente es para acciones y acentos, no para decir que algo falló. El
+     granate de marca solo da 3.10:1 sobre el fondo, por debajo del 4.5:1 que
+     pide AA para texto; este llega a 5.50:1. */
+  --error: #d96a7a;
   --marca: #b03a48;
   --marca-rgb: 176 58 72;
   --marca-suave: rgb(176 58 72 / 0.16);
@@ -25,6 +30,7 @@
   --color-borde: var(--borde);
   --color-hueso: var(--hueso);
   --color-hueso-suave: var(--hueso-suave);
+  --color-error: var(--error);
   --color-marca: var(--marca);
   --color-marca-suave: var(--marca-suave);
   --color-marca-borde: var(--marca-borde);
