@@ -33,11 +33,14 @@ export default async function PaginaImportar({ params }: PageProps<"/admin/[even
           <p>
             <span className="text-hueso-suave">Opcionales:</span> zona, varietal, pais, region,
             anada, grado_alcohol, cuerpo, dulzor, acidez, taninos, notas, maridajes, descripcion,
-            imagen_url, disponible, destacado
+            foto, disponible, destacado
           </p>
           <p className="text-hueso-suave">
             Las escalas van del 1 al 5 y pueden ir vacías. Las listas se separan con |. Los
-            maridajes solo aceptan: {MARIDAJES.join(", ")}.
+            maridajes solo aceptan: {MARIDAJES.join(", ")}. En{" "}
+            <span className="text-hueso">foto</span> va el nombre del archivo, no una dirección
+            web: las imágenes se suben aparte y el importador las empareja con lo que declara cada
+            fila.
           </p>
         </div>
       </details>

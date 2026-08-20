@@ -76,13 +76,17 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
             normalmente se retrocede al paso real, que puede ser el pedido. */}
         <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.nombre} />
 
-        <div className="relative mt-4 h-56 overflow-hidden rounded-2xl bg-superficie-alta">
+        {/* Vertical, no apaisado: las botellas lo son. En el recuadro anterior,
+            de 368 × 192, una foto 3:4 se encogía hasta 144 px de ancho y
+            quedaba nadando en el hueco. Se limita al 45% de la altura de
+            pantalla para que el nombre y el precio sigan viéndose sin bajar. */}
+        <div className="relative mt-4 h-[min(45vh,20rem)] overflow-hidden rounded-2xl bg-superficie-alta">
           {imagenPermitida(vino.imagen_url) ? (
             <Image
               src={vino.imagen_url}
               alt={vino.nombre}
               fill
-              sizes="(max-width: 448px) 100vw, 448px"
+              sizes="(max-width: 448px) 100vw, 400px"
               className="object-contain p-4"
               priority
             />

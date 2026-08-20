@@ -1,2 +1,2 @@
-﻿bodega;stand;zona;nombre;tipo;varietal;pais;region;anada;grado_alcohol;precio;cuerpo;dulzor;acidez;taninos;notas;maridajes;descripcion;imagen_url;disponible;destacado
-Bodega Valle Norte;A-04;Chile;Reserva Cabernet Sauvignon;tinto;Cabernet Sauvignon;Chile;Valle del Maipo;2021;14;89.00;4;2;3;4;cassis|pimiento|vainilla;carnes rojas|quesos;Tinto estructurado con paso por barrica.;;si;no
+﻿bodega;stand;zona;nombre;tipo;varietal;pais;region;anada;grado_alcohol;precio;cuerpo;dulzor;acidez;taninos;notas;maridajes;descripcion;foto;disponible;destacado
+Bodega Valle Norte;A-04;Chile;Reserva Cabernet Sauvignon;tinto;Cabernet Sauvignon;Chile;Valle del Maipo;2021;14;89.00;4;2;3;4;cassis|pimiento|vainilla;carnes rojas|quesos;Tinto estructurado con paso por barrica.;reserva-cabernet-sauvignon.jpg;si;no

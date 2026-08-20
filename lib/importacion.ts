@@ -24,6 +24,7 @@ export const COLUMNAS_OPCIONALES = [
   'notas',
   'maridajes',
   'descripcion',
+  'foto',
   'imagen_url',
   'disponible',
   'destacado',
@@ -149,6 +150,12 @@ export interface FilaProducto {
   notas: string[];
   maridajes: string[];
   descripcion: string | null;
+  /**
+   * Nombre del archivo de la foto, no una URL. Lo declara la bodega en la misma
+   * fila del vino, así que el emparejamiento con la imagen que manda aparte no
+   * se adivina: una foto no puede acabar en el vino equivocado.
+   */
+  foto: string | null;
   imagen_url: string | null;
   disponible: boolean;
   destacado: boolean;
@@ -170,6 +177,20 @@ export interface Validacion {
 }
 
 const vacio = (v: string | undefined) => !v || v.trim() === '';
+
+/** Extensiones que el navegador muestra sin problemas. */
+const EXTENSIONES = ['.jpg', '.jpeg', '.png', '.webp'];
+
+/**
+ * Un nombre de archivo pelado. Se rechazan rutas y URLs: la bodega manda los
+ * archivos sueltos, y aceptar "C:\fotos\malbec.jpg" haría imposible
+ * emparejarlos.
+ */
+function nombreDeArchivoValido(valor: string): boolean {
+  const v = valor.trim();
+  if (v.includes('/') || v.includes('\\') || v.includes('://')) return false;
+  return EXTENSIONES.some((e) => v.toLowerCase().endsWith(e));
+}
 
 /** Excel en español escribe los decimales con coma. */
 function aNumero(v: string): number | null {
@@ -280,7 +301,19 @@ export function validarCsv(texto: string): Validacion {
       }
     }
 
-    // --- foto: un host ajeno rompe next/image y con él toda la pantalla
+    // --- foto: nombre de archivo, no ruta ni URL
+    const foto = celda('foto');
+    if (!vacio(foto) && !nombreDeArchivoValido(foto)) {
+      problema(
+        'foto',
+        `"${foto}" tiene que ser el nombre del archivo con su extensión, por ejemplo malbec.jpg`,
+      );
+    }
+
+    // imagen_url ya no se pide en la plantilla: lo rellena el importador al
+    // subir las fotos. Se sigue aceptando para catálogos ya cargados, pero solo
+    // apuntando al almacenamiento de la feria, porque un host ajeno rompe
+    // next/image y con él la pantalla entera.
     if (!vacio(celda('imagen_url')) && !imagenPermitida(celda('imagen_url'))) {
       problema(
         'imagen_url',
@@ -315,6 +348,7 @@ export function validarCsv(texto: string): Validacion {
       notas: aLista(celda('notas')),
       maridajes,
       descripcion: vacio(celda('descripcion')) ? null : celda('descripcion'),
+      foto: vacio(celda('foto')) ? null : celda('foto'),
       imagen_url: vacio(celda('imagen_url')) ? null : celda('imagen_url'),
       disponible: aBooleano(celda('disponible'), true),
       destacado: aBooleano(celda('destacado'), false),
@@ -367,7 +401,7 @@ export function plantillaCsv(): string {
     'cassis|pimiento|vainilla',
     'carnes rojas|quesos',
     'Tinto estructurado con paso por barrica.',
-    '',
+    'reserva-cabernet-sauvignon.jpg',
     'si',
     'no',
   ];
@@ -391,7 +425,9 @@ export function plantillaCsv(): string {
     'notas',
     'maridajes',
     'descripcion',
-    'imagen_url',
+    // Nombre del archivo, no una URL: imagen_url lo rellena el importador al
+    // subir las fotos, así que la bodega nunca lo escribe a mano.
+    'foto',
     'disponible',
     'destacado',
   ];

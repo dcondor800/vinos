@@ -212,6 +212,35 @@ describe('validarCsv', () => {
     expect(r.problemas[0].fila).toBe(4);
   });
 
+  it('acepta el nombre del archivo de la foto', () => {
+    const r = validarCsv(`${ENCABEZADO};foto\nValle Norte;A-04;Cabernet;tinto;89;malbec.jpg`);
+
+    expect(r.problemas).toEqual([]);
+    expect(r.filas[0].foto).toBe('malbec.jpg');
+  });
+
+  it('rechaza una ruta o una URL en la columna de la foto', () => {
+    // La bodega manda los archivos sueltos; una ruta de su computadora haría
+    // imposible emparejarlos con lo que sube.
+    for (const valor of ['C:\\fotos\\malbec.jpg', '/fotos/malbec.jpg', 'https://web.com/m.jpg']) {
+      const r = validarCsv(`${ENCABEZADO};foto\nValle Norte;A-04;Cabernet;tinto;89;${valor}`);
+      expect(r.problemas[0]?.columna).toBe('foto');
+    }
+  });
+
+  it('rechaza un archivo sin extensión de imagen', () => {
+    const r = validarCsv(`${ENCABEZADO};foto\nValle Norte;A-04;Cabernet;tinto;89;malbec.pdf`);
+
+    expect(r.problemas[0]).toMatchObject({ columna: 'foto' });
+  });
+
+  it('la foto puede ir vacía', () => {
+    const r = validarCsv(`${ENCABEZADO};foto\nValle Norte;A-04;Cabernet;tinto;89;`);
+
+    expect(r.problemas).toEqual([]);
+    expect(r.filas[0].foto).toBeNull();
+  });
+
   it('detecta un stand asignado a dos bodegas distintas', () => {
     const r = validarCsv(
       csv('Valle Norte;A-04;Uno;tinto;50', 'Viñedos del Sur;A-04;Dos;tinto;60'),
