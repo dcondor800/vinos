@@ -4,7 +4,12 @@
  * "sugerencia". El motor puntúa todo el catálogo y nunca filtra.
  */
 
-import { recomendar, type Perfil, type Producto, type Sugerencia } from '@/lib/recomendacion';
+import {
+  recomendar,
+  type Perfil,
+  type Producto,
+  type Sugerencia,
+} from '@/lib/recomendacion';
 
 /**
  * Score mínimo para considerar que un vino de verdad encaja. Sin este corte,
@@ -24,6 +29,14 @@ export interface Seleccion {
   ampliada: boolean;
 }
 
+/**
+ * Se le pide al motor mucho más de lo que se va a mostrar para que el corte lo
+ * ponga el tope por bodega y no el límite de la lista. Si se pidieran 12 y las
+ * 12 quedaran fuera de presupuesto, filtrar después dejaría la lista vacía
+ * teniendo el catálogo opciones más baratas más abajo.
+ */
+const CANDIDATOS = 200;
+
 export function seleccionarSugerencias(
   catalogo: Producto[],
   perfil: Perfil,
@@ -31,11 +44,27 @@ export function seleccionarSugerencias(
 ): Seleccion {
   const { umbral = UMBRAL_RELEVANCIA, limite = MAXIMO_SUGERENCIAS } = opciones;
 
-  const todas = recomendar(catalogo, perfil, { limite });
-  const relevantes = todas.filter((s) => s.score >= umbral);
+  const todas = recomendar(catalogo, perfil, { limite: CANDIDATOS });
 
-  // Menos de 4 encajes reales: se muestra lo mejor que haya y se avisa.
-  const ampliada = relevantes.length < MINIMO_ACEPTABLE && todas.length > relevantes.length;
+  /**
+   * El presupuesto se trata como filtro, no como puntaje. Con catálogo real el
+   * peso de 10 puntos no alcanzaba: quien pedía "hasta S/100" recibía una lista
+   * casi entera por encima de S/100, porque un vino caro que encaja en todo lo
+   * demás le gana a uno barato que encaja casi igual. Pedir un presupuesto y
+   * que no se respete es la forma más rápida de perder la confianza.
+   */
+  const enPresupuesto = (s: Sugerencia) =>
+    perfil.precioMax == null || s.producto.precio <= perfil.precioMax;
 
-  return { lista: ampliada ? todas : relevantes, ampliada };
+  const relevantes = todas.filter((s) => s.score >= umbral && enPresupuesto(s));
+
+  if (relevantes.length >= MINIMO_ACEPTABLE) {
+    return { lista: relevantes.slice(0, limite), ampliada: false };
+  }
+
+  // Menos de 4 encajes reales: se afloja el criterio y se avisa.
+  return {
+    lista: todas.slice(0, limite),
+    ampliada: todas.length > relevantes.length,
+  };
 }
