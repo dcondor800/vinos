@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { registrar } from "@/lib/analitica";
 import { agregarAlPedido, cantidadDe, fijarCantidad, MAX_POR_VINO } from "@/lib/pedido";
 import { usePedido } from "@/lib/usar-sesion";
 
@@ -20,6 +22,12 @@ export function AgregarAlPedido({
   const pedido = usePedido(slug);
   const cantidad = cantidadDe(pedido ?? null, productoId);
 
+  // Abrir una ficha es la señal de interés más limpia que hay: alguien vio el
+  // vino en la lista y decidió mirarlo de cerca.
+  useEffect(() => {
+    registrar(slug, "abierto", productoId);
+  }, [slug, productoId]);
+
   return (
     <div className="sticky bottom-0 -mx-6 mt-10 border-t border-borde bg-superficie px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       {/* Mientras no se sabe (servidor e hidratación) se muestra el botón de
@@ -27,7 +35,10 @@ export function AgregarAlPedido({
       {cantidad === 0 ? (
         <button
           type="button"
-          onClick={() => agregarAlPedido(slug, productoId, standId)}
+          onClick={() => {
+            agregarAlPedido(slug, productoId, standId);
+            registrar(slug, "agregado", productoId);
+          }}
           className="boton boton-primario w-full text-base"
         >
           Agregar al pedido
@@ -41,7 +52,10 @@ export function AgregarAlPedido({
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => fijarCantidad(slug, productoId, cantidad - 1, standId)}
+              onClick={() => {
+                fijarCantidad(slug, productoId, cantidad - 1, standId);
+                registrar(slug, cantidad === 1 ? "removido" : "agregado", productoId);
+              }}
               aria-label="Quitar una botella"
               className="boton boton-icono bg-superficie text-xl"
             >
@@ -49,7 +63,10 @@ export function AgregarAlPedido({
             </button>
             <button
               type="button"
-              onClick={() => fijarCantidad(slug, productoId, cantidad + 1, standId)}
+              onClick={() => {
+                fijarCantidad(slug, productoId, cantidad + 1, standId);
+                registrar(slug, "agregado", productoId);
+              }}
               disabled={cantidad >= MAX_POR_VINO}
               aria-label="Agregar una botella"
               className="boton boton-icono bg-marca text-xl text-sobre-marca"

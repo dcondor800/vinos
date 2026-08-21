@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import type { ProductoCatalogo } from "@/lib/catalogo";
+import { registrar } from "@/lib/analitica";
 import { formatearPrecio } from "@/lib/moneda";
 import {
   confirmarPedido,
@@ -185,7 +186,10 @@ export function Pedido({
                         <div className="flex shrink-0 items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => fijarCantidad(slug, l.producto.id, l.cantidad - 1, g.standId)}
+                            onClick={() => {
+                              fijarCantidad(slug, l.producto.id, l.cantidad - 1, g.standId);
+                              if (l.cantidad === 1) registrar(slug, "removido", l.producto.id);
+                            }}
                             aria-label={`Quitar una botella de ${l.producto.nombre}`}
                             className="grid size-11 place-items-center rounded-full border border-borde text-lg active:bg-borde"
                           >

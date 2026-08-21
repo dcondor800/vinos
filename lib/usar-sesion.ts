@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { instantaneaServidor, suscribir } from '@/lib/almacen';
+import { sincronizarAnalitica } from '@/lib/analitica';
 import { instantaneaPedido, reconciliarPedido, type PedidoLocal } from '@/lib/pedido';
 import { instantaneaPerfil, sincronizarPerfil, type PerfilGuardado } from '@/lib/perfil';
 import { instantaneaSesion, sincronizarSesion, type SesionLocal } from '@/lib/sesion';
@@ -79,7 +80,9 @@ export function useSincronizacion(slug: string): void {
     // En este orden por la FK perfiles.sesion_id → sesiones.id: si la sesión no
     // está arriba, el insert del perfil rebota.
     const reintentar = () => {
-      void sincronizarSesion(slug).then(() => sincronizarPerfil(slug));
+      void sincronizarSesion(slug)
+        .then(() => sincronizarPerfil(slug))
+        .then(() => sincronizarAnalitica(slug));
     };
     reintentar();
     window.addEventListener('online', reintentar);

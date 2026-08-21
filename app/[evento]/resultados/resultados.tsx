@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import type { ProductoCatalogo } from "@/lib/catalogo";
 import { simboloMoneda } from "@/lib/moneda";
@@ -13,6 +13,7 @@ import {
   useSincronizacion,
   useVista,
 } from "@/lib/usar-sesion";
+import { registrarSugerencias } from "@/lib/analitica";
 import { filtrar, guardarVista } from "@/lib/vista";
 import { Encabezado } from "../encabezado";
 import { Esqueleto } from "../esqueleto";
@@ -68,6 +69,21 @@ export function Resultados({
     const orden = [...new Set([...enPantalla, ...catalogo.map((p) => p.id)])];
     return orden.map((id) => `/${slug}/vino/${id}`);
   }, [calculo, catalogo, filtrado, slug, vista]);
+
+  /**
+   * Lo que el motor propuso, para poder compararlo después con lo que la gente
+   * eligió. Se registra al mostrarlo, no al calcularlo, porque una sugerencia
+   * que nadie llegó a ver no dice nada.
+   */
+  useEffect(() => {
+    if (!perfil || !calculo || vista?.todo) return;
+
+    registrarSugerencias(
+      slug,
+      perfil.creadoEn,
+      calculo.lista.map((s) => ({ productoId: s.producto.id, score: s.score })),
+    );
+  }, [calculo, perfil, slug, vista]);
 
   const zonas = useMemo(
     () => [...new Set(catalogo.map((p) => p.zona).filter((z): z is string => !!z))].sort(),
