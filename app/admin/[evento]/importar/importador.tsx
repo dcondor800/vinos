@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { plantillaCsv, type Validacion } from "@/lib/importacion";
+import { guardarVista } from "@/lib/vista";
 import { importarCatalogo, revisarCsv, verificarClave, type ResumenImportacion } from "./acciones";
 import { Fotos } from "./fotos";
 
@@ -168,6 +169,7 @@ function Carga({ slug, evento, clave }: { slug: string; evento: string; clave: s
           </ul>
           <Link
             href={`/${slug}/resultados`}
+            onClick={() => guardarVista(slug, { todo: true })}
             className="mt-2 inline-block text-sm underline underline-offset-4"
           >
             Ver el catálogo en la app

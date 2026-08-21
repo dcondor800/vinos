@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { confirmarEdad, rutaSiguiente } from "@/lib/sesion";
+import { guardarVista } from "@/lib/vista";
 import { useSesion, useSincronizacion } from "@/lib/usar-sesion";
 
 export function Entrada({ slug, eventoId }: { slug: string; eventoId: string }) {
@@ -36,11 +37,18 @@ export function Entrada({ slug, eventoId }: { slug: string; eventoId: string }) 
   if (dentro && sesion) {
     return (
       <div className="flex flex-col gap-3">
-        <Link href={rutaSiguiente(slug, sesion)} className="boton boton-primario w-full text-base">
+        <Link
+          href={rutaSiguiente(slug, sesion)}
+          // El modo de vista se fija al salir, no se hereda: si no, este botón
+          // deja en el catálogo a quien pidió sus sugerencias.
+          onClick={() => guardarVista(slug, { todo: false })}
+          className="boton boton-primario w-full text-base"
+        >
           {sesion.perfilId ? "Volver a mis sugerencias" : "Descubrir mi vino"}
         </Link>
         <Link
           href={`/${slug}/resultados`}
+          onClick={() => guardarVista(slug, { todo: true })}
           className="boton w-full px-6 py-2 text-sm text-hueso-suave underline underline-offset-4"
         >
           Ver el catálogo completo
@@ -64,7 +72,10 @@ export function Entrada({ slug, eventoId }: { slug: string; eventoId: string }) 
           muestra catálogo, y el texto de abajo lo dice. */}
       <button
         type="button"
-        onClick={() => alConfirmar(`/${slug}/resultados`)}
+        onClick={() => {
+          guardarVista(slug, { todo: true });
+          void alConfirmar(`/${slug}/resultados`);
+        }}
         disabled={ocupado}
         className="boton w-full px-6 py-2 text-sm text-hueso-suave underline underline-offset-4"
       >

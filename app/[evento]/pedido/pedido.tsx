@@ -17,6 +17,7 @@ import {
   type LineaConfirmada,
 } from "@/lib/pedido";
 import { useExigeEdad, usePedido, useSincronizacion } from "@/lib/usar-sesion";
+import { guardarVista } from "@/lib/vista";
 import { Encabezado } from "../encabezado";
 import { Esqueleto } from "../esqueleto";
 
@@ -115,6 +116,7 @@ export function Pedido({
           <p className="text-hueso-suave">Todavía no has agregado ninguna botella.</p>
           <Link
             href={`/${slug}/resultados`}
+            onClick={() => guardarVista(slug, { todo: false })}
             className="boton boton-primario mt-5 w-full text-base"
           >
             Ver mis sugerencias

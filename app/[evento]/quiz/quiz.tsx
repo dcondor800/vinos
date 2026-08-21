@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { guardarPerfil } from "@/lib/perfil";
+import { guardarVista } from "@/lib/vista";
 import { useExigeEdad, usePerfil, useSincronizacion } from "@/lib/usar-sesion";
 import { Esqueleto } from "../esqueleto";
 import type { TipoVino } from "@/lib/recomendacion";
@@ -131,6 +132,9 @@ function Pasos({
     // El perfil queda en localStorage antes de navegar; la fila en `perfiles`
     // se sube por detrás.
     guardarPerfil(slug, aPerfil(r));
+    // Quien acaba de responder cinco preguntas espera ver sus sugerencias, no
+    // el catálogo entero en el que quedó la última vez.
+    guardarVista(slug, { todo: false });
     router.replace(`/${slug}/resultados`);
   }
 
