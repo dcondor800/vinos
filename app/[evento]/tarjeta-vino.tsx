@@ -35,7 +35,7 @@ export function TarjetaVino({
             alt=""
             fill
             sizes="96px"
-            className="object-contain p-1"
+            className="object-contain"
           />
         ) : (
           <span

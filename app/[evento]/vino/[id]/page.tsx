@@ -92,7 +92,9 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
               // El recuadro nunca pasa de 288 puntos de ancho; sin esto Next
               // descargaba una imagen dimensionada para la pantalla completa.
               sizes="288px"
-              className="object-contain p-4"
+              // Sin relleno: el recuadro ya tiene la proporción de la foto, así
+              // que cualquier margen interior se ve como un marco alrededor.
+              className="object-contain"
               priority
             />
           ) : (
