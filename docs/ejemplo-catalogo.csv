@@ -1,0 +1,31 @@
+﻿bodega;stand;zona;nombre;tipo;varietal;pais;region;anada;grado_alcohol;precio;cuerpo;dulzor;acidez;taninos;notas;maridajes;descripcion;foto
+Viña Cerro Alto;A-01;Chile;Cerro Alto Sauvignon Blanc;blanco;Sauvignon Blanc;Chile;Valle de Casablanca;2024;12.5;38;2;2;5;;cítricos|hierba fresca|maracuyá;pescados y mariscos|aves;Blanco punzante y muy fresco, de trago fácil.;
+Viña Cerro Alto;A-01;Chile;Cerro Alto Carmenere;tinto;Carmenere;Chile;Valle de Colchagua;2022;13.5;72;4;2;3;4;pimiento|ciruela|tabaco;carnes rojas|quesos;Tinto de carácter, con el pimiento típico de la cepa.;
+Viña Cerro Alto;A-01;Chile;Cerro Alto Reserva Cabernet;tinto;Cabernet Sauvignon;Chile;Valle del Maipo;2021;14;145;5;2;3;5;cassis|vainilla|cedro;carnes rojas;Reserva de guarda, con dos años de barrica.;
+Viña Cerro Alto;A-01;Chile;Cerro Alto Rosé;rosado;Syrah;Chile;Valle de Casablanca;2024;12;42;2;3;4;;frutilla|sandía;aves|solo, para tomar;Rosado ligero y afrutado, para beber bien frío.;
+Bodega Río de Piedra;A-02;Argentina;Río de Piedra Malbec;tinto;Malbec;Argentina;Valle de Uco;2022;14;88;4;3;3;3;ciruela|violeta|chocolate;carnes rojas|pastas;Malbec de altura, frutado y de taninos redondos.;
+Bodega Río de Piedra;A-02;Argentina;Río de Piedra Torrontés;blanco;Torrontés;Argentina;Cafayate;2024;13;55;2;3;4;;azahar|durazno|jazmín;aves|pescados y mariscos;Blanco aromático, floral y sorprendente.;
+Bodega Río de Piedra;A-02;Argentina;Piedra Negra Gran Reserva;tinto;Malbec;Argentina;Valle de Uco;2019;14.5;260;5;2;3;5;higo|café|cuero;carnes rojas;Etiqueta insignia de la bodega, de guarda larga.;
+Casa Ica;A-03;Perú;Casa Ica Quebranta;tinto;Quebranta;Perú;Ica;2023;13;48;3;2;4;3;ciruela|tierra húmeda;carnes rojas|pastas;Cepa peruana, rústica y honesta.;
+Casa Ica;A-03;Perú;Casa Ica Espumante Brut;espumante;Chardonnay;Perú;Ica;2023;11.5;68;2;1;5;;manzana verde|pan tostado;pescados y mariscos|quesos;Espumante seco por método tradicional.;
+Casa Ica;A-03;Perú;Casa Ica Cosecha Tardía;dulce;Moscatel;Perú;Ica;2022;10.5;58;3;5;3;;miel|durazno|azahar;postres|quesos;Dulce natural de uva sobremadurada.;
+Casa Ica;A-03;Perú;Casa Ica Blanco de Blancos;blanco;Albilla;Perú;Ica;2024;12;35;1;2;4;;pera|flores blancas;pescados y mariscos;Blanco liviano y económico, muy bebible.;
+Mascota Vineyards;A-04;Argentina;La Mascota;tinto;Malbec;Argentina;Mendoza;2021;14;89;4;2;3;4;cassis|pimiento|vainilla;carnes rojas|quesos;Tinto estructurado con paso por barrica y taninos firmes.;mascota.jpg
+Mascota Vineyards;A-04;Argentina;La Mascota Chardonnay;blanco;Chardonnay;Argentina;Mendoza;2023;13.5;76;3;2;4;;manzana|mantequilla|vainilla;aves|pescados y mariscos;Chardonnay con barrica, untuoso y amplio.;
+Mascota Vineyards;A-04;Argentina;Gran Mascota;tinto;Cabernet Sauvignon;Argentina;Mendoza;2020;14.5;195;5;2;3;5;grosella|regaliz|tostado;carnes rojas;La etiqueta superior, concentrada y de guarda.;
+Viñedos del Maipo;B-01;Chile;Maipo Merlot Joven;tinto;Merlot;Chile;Valle del Maipo;2023;13;44;3;3;3;2;cereza|ciruela;pastas|aves;Tinto suave y frutado, sin barrica.;
+Viñedos del Maipo;B-01;Chile;Maipo Syrah;tinto;Syrah;Chile;Valle del Maipo;2022;14;95;4;2;3;4;mora|pimienta negra;carnes rojas|quesos;Syrah especiado, con pimienta muy marcada.;
+Viñedos del Maipo;B-01;Chile;Maipo Brut Rosé;espumante;Pinot Noir;Chile;Valle de Casablanca;2023;12;82;2;2;5;;frambuesa|brioche;aves|solo, para tomar;Espumante rosado, fino y con burbuja persistente.;
+Bodegas Ribera Vieja;B-02;España;Ribera Vieja Crianza;tinto;Tempranillo;España;Ribera del Duero;2021;14;120;4;2;3;4;ciruela|coco|especias;carnes rojas|quesos;Crianza clásica, un año en roble americano.;
+Bodegas Ribera Vieja;B-02;España;Ribera Vieja Reserva;tinto;Tempranillo;España;Ribera del Duero;2018;14.5;240;5;2;3;5;ciruela pasa|cuero|tabaco;carnes rojas;Reserva de añada excepcional, listo para beber.;
+Bodegas Ribera Vieja;B-02;España;Verdejo de Rueda;blanco;Verdejo;España;Rueda;2024;13;62;2;2;5;;hinojo|lima|almendra;pescados y mariscos;Verdejo con el amargor final que lo distingue.;
+Bodegas Ribera Vieja;B-02;España;Cava Brut Nature;espumante;Macabeo;España;Penedés;2022;11.5;78;2;1;5;;manzana|levadura;pescados y mariscos|quesos;Cava sin azúcar añadido, seco de verdad.;
+Domaine Petit Coteau;B-03;Francia;Petit Coteau Rosé de Provence;rosado;Garnacha;Francia;Provenza;2024;12.5;98;1;2;4;;pomelo|melocotón|romero;pescados y mariscos|aves;El rosado pálido de manual, seco y delicado.;
+Domaine Petit Coteau;B-03;Francia;Petit Coteau Pinot Noir;tinto;Pinot Noir;Francia;Borgoña;2021;13;175;2;2;4;2;cereza|sotobosque|violeta;aves|quesos;Pinot elegante, ligero de cuerpo pero profundo.;
+Domaine Petit Coteau;B-03;Francia;Petit Coteau Chablis;blanco;Chardonnay;Francia;Chablis;2022;12.5;165;2;1;5;;ostra|limón|pedernal;pescados y mariscos;Chablis mineral, sin una gota de barrica.;
+Domaine Petit Coteau;B-03;Francia;Sauternes Petit;dulce;Sémillon;Francia;Burdeos;2019;13.5;320;4;5;4;;albaricoque|miel|azafrán;postres|quesos;Dulce noble, la joya de la bodega.;
+Tenuta San Marco;B-04;Italia;San Marco Prosecco;espumante;Glera;Italia;Véneto;2023;11;52;1;2;4;;pera|manzana verde;aves|solo, para tomar;Prosecco fresco y liviano, para empezar la noche.;
+Tenuta San Marco;B-04;Italia;San Marco Chianti;tinto;Sangiovese;Italia;Toscana;2022;13.5;84;3;2;5;3;cereza ácida|tomate seco|hierbas;pastas|carnes rojas;Chianti de acidez alta, hecho para la mesa.;
+Tenuta San Marco;B-04;Italia;San Marco Barolo;tinto;Nebbiolo;Italia;Piamonte;2019;14.5;290;5;1;5;5;rosa|alquitrán|trufa;carnes rojas|quesos;Barolo austero y tánico, de guarda muy larga.;
+Tenuta San Marco;B-04;Italia;San Marco Pinot Grigio;blanco;Pinot Grigio;Italia;Friuli;2024;12;46;1;2;4;;manzana|almendra;pescados y mariscos|pastas;Blanco neutro y refrescante, sin complicaciones.;
+Tenuta San Marco;B-04;Italia;Moscato di Asti;dulce;Moscato;Italia;Piamonte;2024;5.5;64;1;5;4;;uva moscatel|salvia|miel;postres;Dulce, con muy poco alcohol y ligeramente burbujeante.;
