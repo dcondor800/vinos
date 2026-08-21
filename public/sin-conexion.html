@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#17131a" />
+    <title>Sin conexión</title>
+    <style>
+      /* Página suelta: la sirve el service worker cuando no hay red, así que no
+         puede depender de ninguna hoja de estilos ni de JavaScript. */
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 2rem 1.5rem;
+        background: #17131a;
+        color: #ede7e0;
+        font-family: system-ui, sans-serif;
+        line-height: 1.6;
+      }
+      h1 {
+        margin: 0;
+        font-family: Georgia, serif;
+        font-size: 1.9rem;
+        font-weight: 600;
+      }
+      p {
+        margin: 0;
+        color: #a49aa0;
+        max-width: 34ch;
+      }
+      button {
+        margin-top: 1rem;
+        min-height: 44px;
+        border: 0;
+        border-radius: 9999px;
+        padding: 0.9rem 1.5rem;
+        background: #b03a48;
+        color: #ede7e0;
+        font: inherit;
+        font-weight: 500;
+      }
+      button:active {
+        transform: scale(0.97);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sin conexión</h1>
+    <p>
+      Esta pantalla todavía no está guardada en tu teléfono. Las que ya visitaste sí funcionan
+      sin señal.
+    </p>
+    <p>En un salón lleno la señal va y viene: vuelve a intentarlo en unos segundos.</p>
+    <button type="button" onclick="location.reload()">Reintentar</button>
+  </body>
+</html>

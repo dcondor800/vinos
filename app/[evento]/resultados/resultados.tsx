@@ -16,6 +16,7 @@ import {
 import { filtrar, guardarVista } from "@/lib/vista";
 import { Encabezado } from "../encabezado";
 import { Esqueleto } from "../esqueleto";
+import { Precalentar } from "../precalentar";
 import { TarjetaVino } from "../tarjeta-vino";
 import { Filtros } from "./filtros";
 
@@ -49,6 +50,18 @@ export function Resultados({
     [catalogo, vista],
   );
 
+  // Las fichas de lo que está en pantalla, para que sigan abriendo sin señal.
+  const rutasVisibles = useMemo(() => {
+    // No usa `sugiriendo`, que se calcula más abajo: los hooks tienen que
+    // correr siempre, también en los renders que salen temprano.
+    const ids =
+      calculo && !vista?.todo
+        ? calculo.lista.map((s) => s.producto.id)
+        : filtrado.slice(0, 12).map((p) => p.id);
+
+    return ids.map((id) => `/${slug}/vino/${id}`);
+  }, [calculo, filtrado, slug, vista]);
+
   const zonas = useMemo(
     () => [...new Set(catalogo.map((p) => p.zona).filter((z): z is string => !!z))].sort(),
     [catalogo],
@@ -64,6 +77,7 @@ export function Resultados({
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
       <Encabezado slug={slug} volverA={`/${slug}`} />
+      <Precalentar rutas={rutasVisibles} />
 
       <header className="pt-5">
         <h1 className="text-2xl font-medium tracking-tight">

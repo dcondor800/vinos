@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import { RegistroSW } from "./registro-sw";
 
 /** Serif con carácter: nombres de vino y bodega. Evoca la etiqueta. */
 const etiqueta = Fraunces({
@@ -34,7 +35,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${etiqueta.variable} ${ui.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <RegistroSW />
+      </body>
     </html>
   );
 }
