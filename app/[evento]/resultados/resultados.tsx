@@ -50,7 +50,14 @@ export function Resultados({
     [catalogo, vista],
   );
 
-  // Las fichas de lo que está en pantalla, para que sigan abriendo sin señal.
+  // El catálogo entero se guarda en el dispositivo: no cambia durante la feria,
+  // así que bajarlo una vez deja todas las fichas disponibles sin señal.
+  const rutasCatalogo = useMemo(
+    () => catalogo.map((p) => `/${slug}/vino/${p.id}`),
+    [catalogo, slug],
+  );
+
+  // Respaldo para catálogos grandes, donde bajarlo todo deja de ser gratis.
   const rutasVisibles = useMemo(() => {
     // No usa `sugiriendo`, que se calcula más abajo: los hooks tienen que
     // correr siempre, también en los renders que salen temprano.
@@ -77,7 +84,7 @@ export function Resultados({
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
       <Encabezado slug={slug} volverA={`/${slug}`} />
-      <Precalentar rutas={rutasVisibles} />
+      <Precalentar rutas={rutasCatalogo} visibles={rutasVisibles} />
 
       <header className="pt-5">
         <h1 className="text-2xl font-medium tracking-tight">

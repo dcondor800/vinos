@@ -3,18 +3,27 @@
 import { useEffect } from "react";
 
 /**
- * Guarda en el dispositivo las fichas de los vinos que están en pantalla.
+ * Guarda el catálogo entero en el dispositivo mientras hay señal.
  *
  * El service worker cachea lo que se visita, así que la lista queda disponible
- * sin señal por el solo hecho de haber pasado por ella. Las fichas no: si se
- * cae el WiFi justo cuando alguien toca un vino, esa pantalla no existe todavía
- * en su teléfono. Pedirlas por adelantado cierra ese hueco, que es el momento
+ * por el solo hecho de haber pasado por ella. Las fichas no: quedarse sin red
+ * justo al tocar un vino deja esa pantalla inexistente, que es el momento
  * exacto en que se usa la app frente al stand.
  *
- * Se limita a lo que se está viendo. Precargar un catálogo de cientos de vinos
- * sería descargar mucho para leer poco, justo cuando la red está peor.
+ * Se traen todas y no solo las visibles porque el catálogo no cambia durante la
+ * feria: bajarlo una vez al entrar deja la app completa en el teléfono. Son
+ * unos 7 KB por ficha comprimida, así que treinta vinos son menos de un cuarto
+ * de mega.
  */
-export function Precalentar({ rutas }: { rutas: string[] }) {
+
+/**
+ * Por encima de esto deja de ser gratis: una feria de cientos de etiquetas
+ * serían varios megas justo cuando la red está peor. Ahí solo se guarda lo que
+ * la persona tiene en pantalla.
+ */
+const MAXIMO_CATALOGO_COMPLETO = 150;
+
+export function Precalentar({ rutas, visibles }: { rutas: string[]; visibles: string[] }) {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator) || navigator.onLine === false) return;
@@ -24,11 +33,12 @@ export function Precalentar({ rutas }: { rutas: string[] }) {
       .connection;
     if (red?.saveData || red?.effectiveType === "2g" || red?.effectiveType === "slow-2g") return;
 
+    const objetivo = rutas.length <= MAXIMO_CATALOGO_COMPLETO ? rutas : visibles;
     let cancelado = false;
 
     const traer = async () => {
-      for (const ruta of rutas) {
-        if (cancelado) return;
+      for (const ruta of objetivo) {
+        if (cancelado || navigator.onLine === false) return;
         // Una a una y sin bloquear: esto va por detrás de lo que la persona
         // esté haciendo, nunca por delante.
         await fetch(ruta, { credentials: "same-origin" }).catch(() => {});
@@ -42,7 +52,7 @@ export function Precalentar({ rutas }: { rutas: string[] }) {
       cancelado = true;
       window.cancelIdleCallback?.(id as number);
     };
-  }, [rutas]);
+  }, [rutas, visibles]);
 
   return null;
 }
