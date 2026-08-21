@@ -3,27 +3,32 @@
 import { useEffect } from "react";
 
 /**
- * Guarda el catálogo entero en el dispositivo mientras hay señal.
+ * Guarda fichas en el dispositivo mientras hay señal, para que sigan abriendo
+ * cuando se caiga.
  *
  * El service worker cachea lo que se visita, así que la lista queda disponible
  * por el solo hecho de haber pasado por ella. Las fichas no: quedarse sin red
  * justo al tocar un vino deja esa pantalla inexistente, que es el momento
  * exacto en que se usa la app frente al stand.
  *
- * Se traen todas y no solo las visibles porque el catálogo no cambia durante la
- * feria: bajarlo una vez al entrar deja la app completa en el teléfono. Son
- * unos 7 KB por ficha comprimida, así que treinta vinos son menos de un cuarto
- * de mega.
+ * No hay un número máximo de vinos, sino un presupuesto de descarga. Un tope
+ * por cantidad obliga a adivinar el tamaño del catálogo —que cambia con cada
+ * feria— y falla por los dos lados: se queda corto en una pequeña y descarga de
+ * más en una grande. Con presupuesto, una feria de treinta etiquetas entra
+ * entera y una de cuatrocientas guarda las que caben, empezando por las que la
+ * persona tiene más probabilidad de abrir.
  */
 
 /**
- * Por encima de esto deja de ser gratis: una feria de cientos de etiquetas
- * serían varios megas justo cuando la red está peor. Ahí solo se guarda lo que
- * la persona tiene en pantalla.
+ * Unos 3 MB. En una feria con la red saturada esto tarda minutos en segundo
+ * plano, y pasarse compite con la navegación de todo el mundo.
  */
-const MAXIMO_CATALOGO_COMPLETO = 150;
+const PRESUPUESTO = 3 * 1024 * 1024;
 
-export function Precalentar({ rutas, visibles }: { rutas: string[]; visibles: string[] }) {
+/** El servidor comprime; lo que se mide es el texto sin comprimir. */
+const COMPRESION = 4;
+
+export function Precalentar({ rutas }: { rutas: string[] }) {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator) || navigator.onLine === false) return;
@@ -33,15 +38,27 @@ export function Precalentar({ rutas, visibles }: { rutas: string[]; visibles: st
       .connection;
     if (red?.saveData || red?.effectiveType === "2g" || red?.effectiveType === "slow-2g") return;
 
-    const objetivo = rutas.length <= MAXIMO_CATALOGO_COMPLETO ? rutas : visibles;
     let cancelado = false;
 
     const traer = async () => {
-      for (const ruta of objetivo) {
+      let gastado = 0;
+
+      for (const ruta of rutas) {
         if (cancelado || navigator.onLine === false) return;
-        // Una a una y sin bloquear: esto va por detrás de lo que la persona
-        // esté haciendo, nunca por delante.
-        await fetch(ruta, { credentials: "same-origin" }).catch(() => {});
+        if (gastado >= PRESUPUESTO) return;
+
+        try {
+          // Una a una y sin bloquear: esto va por detrás de lo que la persona
+          // esté haciendo, nunca por delante.
+          const respuesta = await fetch(ruta, { credentials: "same-origin" });
+          const declarado = Number(respuesta.headers.get("content-length"));
+          const texto = await respuesta.text();
+
+          gastado += declarado || texto.length / COMPRESION;
+        } catch {
+          // Se cortó la red: lo guardado hasta aquí sigue sirviendo.
+          return;
+        }
       }
     };
 
@@ -52,7 +69,7 @@ export function Precalentar({ rutas, visibles }: { rutas: string[]; visibles: st
       cancelado = true;
       window.cancelIdleCallback?.(id as number);
     };
-  }, [rutas, visibles]);
+  }, [rutas]);
 
   return null;
 }
