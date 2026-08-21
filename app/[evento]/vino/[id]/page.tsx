@@ -76,17 +76,22 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
             normalmente se retrocede al paso real, que puede ser el pedido. */}
         <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.nombre} />
 
-        {/* Vertical, no apaisado: las botellas lo son. En el recuadro anterior,
-            de 368 × 192, una foto 3:4 se encogía hasta 144 px de ancho y
-            quedaba nadando en el hueco. Se limita al 45% de la altura de
-            pantalla para que el nombre y el precio sigan viéndose sin bajar. */}
-        <div className="relative mt-4 h-[min(45vh,20rem)] overflow-hidden rounded-2xl bg-superficie-alta">
+        {/* 3:4 vertical, la forma de una botella y la misma que se le pide a las
+            bodegas, así la foto llena el recuadro sin franjas a los lados.
+            Manda la altura y el ancho sale de la proporción: al revés, un
+            recuadro de ancho fijo deja huecos en cuanto la foto no cuadra.
+            El tope de 384px evita que en pantallas grandes crezca sin freno, y
+            el 48% de la altura hace que en un teléfono pequeño se encoja lo
+            justo para que el precio siga entrando sin desplazarse. */}
+        <div className="relative mx-auto mt-4 aspect-[3/4] h-[min(48vh,24rem)] overflow-hidden rounded-2xl bg-superficie-alta">
           {imagenPermitida(vino.imagen_url) ? (
             <Image
               src={vino.imagen_url}
               alt={vino.nombre}
               fill
-              sizes="(max-width: 448px) 100vw, 400px"
+              // El recuadro nunca pasa de 288 puntos de ancho; sin esto Next
+              // descargaba una imagen dimensionada para la pantalla completa.
+              sizes="288px"
               className="object-contain p-4"
               priority
             />

@@ -25,7 +25,9 @@ describe('la plantilla que se envía a las bodegas', () => {
   });
 
   it('el ejemplo de foto es un nombre de archivo, no una dirección web', () => {
-    expect(r.filas[0].foto).toBe('reserva-cabernet-sauvignon.jpg');
+    // Se comprueba la forma y no el nombre exacto: la plantilla se edita para
+    // probar con vinos reales y eso no debería romper la prueba.
+    expect(r.filas[0].foto).toMatch(/^[^/\\]+\.(jpg|jpeg|png|webp)$/i);
   });
 });
 
