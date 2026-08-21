@@ -76,22 +76,22 @@ export default async function PaginaVino({ params }: PageProps<"/[evento]/vino/[
             normalmente se retrocede al paso real, que puede ser el pedido. */}
         <Encabezado slug={slug} volverA={`/${slug}/resultados`} titulo={vino.nombre} />
 
-        {/* 3:4 vertical, la forma de una botella y la misma que se le pide a las
-            bodegas, así la foto llena el recuadro sin franjas a los lados.
-            Manda la altura y el ancho sale de la proporción: al revés, un
-            recuadro de ancho fijo deja huecos en cuanto la foto no cuadra.
-            El tope de 384px evita que en pantallas grandes crezca sin freno, y
-            el 48% de la altura hace que en un teléfono pequeño se encoja lo
-            justo para que el precio siga entrando sin desplazarse. */}
-        <div className="relative mx-auto mt-4 aspect-[3/4] h-[min(48vh,24rem)] overflow-hidden rounded-2xl bg-superficie-alta">
+        {/* Al ancho completo de la columna, alineado con el nombre y el precio:
+            una foto más angosta que el texto se lee como un error de maqueta.
+            La altura sale del 3:4 que se le pide a las bodegas, la proporción
+            de una botella, así que la imagen llena el recuadro sin franjas.
+
+            El costo es que en teléfonos cortos el bloque del stand queda justo
+            debajo del borde y hay que desplazarse un poco. Se acepta: el nombre
+            y el precio siguen entrando, y la foto es lo que hace que alguien
+            reconozca la botella que tiene delante. */}
+        <div className="relative mt-4 aspect-[3/4] w-full overflow-hidden rounded-2xl bg-superficie-alta">
           {imagenPermitida(vino.imagen_url) ? (
             <Image
               src={vino.imagen_url}
               alt={vino.nombre}
               fill
-              // El recuadro nunca pasa de 288 puntos de ancho; sin esto Next
-              // descargaba una imagen dimensionada para la pantalla completa.
-              sizes="288px"
+              sizes="(max-width: 448px) 100vw, 400px"
               // Sin relleno: el recuadro ya tiene la proporción de la foto, así
               // que cualquier margen interior se ve como un marco alrededor.
               className="object-contain"
