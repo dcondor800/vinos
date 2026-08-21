@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   cantidadDe,
+  reconciliar,
   standRecogido,
   todoRecogido,
   totalBotellas,
@@ -63,6 +64,63 @@ describe('totalBotellas', () => {
   it('un pedido vacío no está "todo recogido"', () => {
     expect(todoRecogido(pedido())).toBe(false);
     expect(totalBotellas(null)).toBe(0);
+  });
+});
+
+describe('reconciliar con el catálogo', () => {
+  const mapa = new Map([
+    ['a', 's1'],
+    ['b', 's2'],
+  ]);
+
+  it('no cambia nada cuando todo sigue en el catálogo', () => {
+    const p = pedido({ items: [linea('a', 's1', 2), linea('b', 's2', 1)] });
+
+    expect(reconciliar(p, mapa)).toBeNull();
+  });
+
+  it('descarta el vino que ya no está en el catálogo', () => {
+    // Es el caso que dejaba botellas fantasma: invisibles en la lista, porque
+    // se agrupa por catálogo, pero contadas en el indicador del encabezado.
+    const p = pedido({ items: [linea('a', 's1', 2), linea('fantasma', 's9', 3)] });
+    const r = reconciliar(p, mapa)!;
+
+    expect(r.items.map((i) => i.productoId)).toEqual(['a']);
+    expect(totalBotellas(r)).toBe(2);
+  });
+
+  it('completa el stand de las líneas guardadas sin él', () => {
+    const p = pedido({ items: [linea('a', null, 1)] });
+
+    expect(reconciliar(p, mapa)!.items[0].standId).toBe('s1');
+  });
+
+  it('corrige el stand cuando el vino cambió de sitio en la feria', () => {
+    const p = pedido({ items: [linea('a', 'viejo', 1)] });
+
+    expect(reconciliar(p, mapa)!.items[0].standId).toBe('s1');
+  });
+
+  it('olvida los stands marcados como recogidos que ya no tienen líneas', () => {
+    const p = pedido({ items: [linea('a', 's1', 1)], recogidos: ['s1', 's9'] });
+
+    expect(reconciliar(p, mapa)!.recogidos).toEqual(['s1']);
+  });
+
+  it('suelta el código cuando no queda ninguna línea', () => {
+    // Un código de recojo apuntando a una lista vacía no le sirve a nadie.
+    const p = pedido({
+      items: [linea('fantasma', 's9', 2)],
+      id: 'uuid',
+      codigo: 'K7M2QX',
+      recogidos: ['s9'],
+    });
+    const r = reconciliar(p, mapa)!;
+
+    expect(r.items).toEqual([]);
+    expect(r.codigo).toBeNull();
+    expect(r.id).toBeNull();
+    expect(totalBotellas(r)).toBe(0);
   });
 });
 

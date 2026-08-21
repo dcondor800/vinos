@@ -158,6 +158,64 @@ export function agregarAlPedido(slug: string, productoId: string, standId?: stri
   return fijarCantidad(slug, productoId, cantidadDe(leerPedido(slug), productoId) + 1, standId);
 }
 
+/**
+ * Pone el pedido al día con el catálogo actual.
+ *
+ * El pedido guarda solo ids de vino, así que si el catálogo cambia —se agota
+ * una etiqueta, se recarga la feria entera— quedan líneas apuntando a vinos que
+ * ya no existen. La pantalla del pedido las ignora al agrupar, pero el contador
+ * del encabezado las seguía sumando: quedaban botellas fantasma imposibles de
+ * quitar, porque no se ven en ninguna parte.
+ *
+ * De paso completa el stand de las líneas guardadas antes de que se almacenara,
+ * y descarta stands marcados como recogidos que ya no tienen ninguna línea.
+ *
+ * Devuelve null cuando no hay nada que cambiar, para no escribir de más.
+ */
+export function reconciliar(
+  pedido: PedidoLocal,
+  standPorProducto: Map<string, string>,
+): PedidoLocal | null {
+  let cambio = false;
+  const items: LineaPedido[] = [];
+
+  for (const linea of pedido.items) {
+    const standId = standPorProducto.get(linea.productoId);
+
+    if (!standId) {
+      cambio = true; // el vino ya no está en el catálogo
+      continue;
+    }
+
+    if (linea.standId !== standId) {
+      cambio = true;
+      items.push({ ...linea, standId });
+    } else {
+      items.push(linea);
+    }
+  }
+
+  const presentes = new Set(items.map((i) => i.standId));
+  const recogidos = pedido.recogidos.filter((s) => presentes.has(s));
+  if (recogidos.length !== pedido.recogidos.length) cambio = true;
+
+  if (!cambio) return null;
+
+  // Sin líneas no queda pedido: se suelta también el código, o quedaría una
+  // referencia a una lista vacía.
+  if (items.length === 0) {
+    return { ...pedido, items: [], recogidos: [], id: null, codigo: null, sincronizado: false };
+  }
+
+  return { ...pedido, items, recogidos };
+}
+
+/** Aplica la reconciliación sobre lo guardado. */
+export function reconciliarPedido(slug: string, standPorProducto: Map<string, string>): void {
+  const puesto = reconciliar(leerPedido(slug), standPorProducto);
+  if (puesto) escribir(clavePedido(slug), puesto);
+}
+
 /** Marca un stand como pagado y recogido. Es local: no hay política de update. */
 export function marcarRecogido(slug: string, standId: string, recogido: boolean): PedidoLocal {
   const actuales = leerPedido(slug).recogidos.filter((s) => s !== standId);

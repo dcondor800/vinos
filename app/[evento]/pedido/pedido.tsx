@@ -16,7 +16,12 @@ import {
   vaciarPedido,
   type LineaConfirmada,
 } from "@/lib/pedido";
-import { useExigeEdad, usePedido, useSincronizacion } from "@/lib/usar-sesion";
+import {
+  useExigeEdad,
+  usePedido,
+  useReconciliarPedido,
+  useSincronizacion,
+} from "@/lib/usar-sesion";
 import { guardarVista } from "@/lib/vista";
 import { Encabezado } from "../encabezado";
 import { Esqueleto } from "../esqueleto";
@@ -48,6 +53,7 @@ export function Pedido({
   const sesion = useExigeEdad(slug);
   const pedido = usePedido(slug);
   useSincronizacion(slug);
+  useReconciliarPedido(catalogo, slug);
 
   const { grupos, total } = useMemo(() => {
     const porId = new Map(catalogo.map((p) => [p.id, p]));

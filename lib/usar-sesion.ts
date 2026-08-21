@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { instantaneaServidor, suscribir } from '@/lib/almacen';
-import { instantaneaPedido, type PedidoLocal } from '@/lib/pedido';
+import { instantaneaPedido, reconciliarPedido, type PedidoLocal } from '@/lib/pedido';
 import { instantaneaPerfil, sincronizarPerfil, type PerfilGuardado } from '@/lib/perfil';
 import { instantaneaSesion, sincronizarSesion, type SesionLocal } from '@/lib/sesion';
 import { instantaneaVista, VISTA_INICIAL, type Vista } from '@/lib/vista';
@@ -44,6 +44,17 @@ export function usePedido(slug: string): PedidoLocal | null | undefined {
 export function useVista(slug: string): Vista | undefined {
   const leer = useCallback(() => instantaneaVista(slug) ?? VISTA_INICIAL, [slug]);
   return useSyncExternalStore<Vista | undefined>(suscribir, leer, instantaneaServidor);
+}
+
+/**
+ * Descarta del pedido los vinos que ya no están en el catálogo. Lo usan las
+ * pantallas que cargan el catálogo entero; sin esto quedan botellas fantasma
+ * que suman en el contador y no aparecen en ninguna lista.
+ */
+export function useReconciliarPedido(catalogo: { id: string; stand_id: string }[], slug: string) {
+  useEffect(() => {
+    reconciliarPedido(slug, new Map(catalogo.map((p) => [p.id, p.stand_id])));
+  }, [catalogo, slug]);
 }
 
 /**

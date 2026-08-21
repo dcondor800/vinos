@@ -6,7 +6,13 @@ import type { ProductoCatalogo } from "@/lib/catalogo";
 import { simboloMoneda } from "@/lib/moneda";
 import { describirPerfil } from "@/lib/recomendacion";
 import { seleccionarSugerencias } from "@/lib/sugerencias";
-import { useExigeEdad, usePerfil, useSincronizacion, useVista } from "@/lib/usar-sesion";
+import {
+  useExigeEdad,
+  usePerfil,
+  useReconciliarPedido,
+  useSincronizacion,
+  useVista,
+} from "@/lib/usar-sesion";
 import { filtrar, guardarVista } from "@/lib/vista";
 import { Encabezado } from "../encabezado";
 import { Esqueleto } from "../esqueleto";
@@ -26,6 +32,7 @@ export function Resultados({
   const perfil = usePerfil(slug);
   const vista = useVista(slug);
   useSincronizacion(slug);
+  useReconciliarPedido(catalogo, slug);
 
   // Todo el trabajo pasa aquí, sobre el catálogo que ya está en memoria: sin
   // red de por medio y sin spinner.
